@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WORK LOG // aurore.work</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+KR:wght@400;700;900&display=swap');
+
+    :root {
+      --bg: #f8f9fc;
+      --bg2: #eef0f6;
+      --card: #ffffff;
+      --card-hover: #fafaff;
+      --border: #e0e4ee;
+      --text: #1e1e2e;
+      --text-sub: #555568;
+      --text-dim: #999aaa;
+      --purple: #7c5cfc;
+      --pink: #ff6b9d;
+      --blue: #4a9eff;
+      --green: #2ecf7a;
+      --orange: #ff8c42;
+      --yellow: #ffc107;
+      --red: #ff5252;
+      --cyan: #00c4b4;
+      --gold: #ff9900;
+      --shadow: 0 2px 12px rgba(124,92,252,0.06);
+      --shadow-hover: 0 8px 24px rgba(124,92,252,0.10);
+      --mono: 'JetBrains Mono', monospace;
+      --body: 'Nunito', 'Noto Sans KR', sans-serif;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: var(--body); background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
+
+    /* NAV */
+    .nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+    .nav-back {
+      font-family: var(--mono); font-size: 0.75rem; color: var(--text-dim);
+      text-decoration: none; padding: 0.4rem 0.8rem; border-radius: 10px;
+      border: 1px solid var(--border); transition: all 0.2s; font-weight: 600;
+    }
+    .nav-back:hover { color: var(--purple); border-color: var(--purple); background: rgba(124,92,252,0.04); }
+    .nav-time { font-family: var(--mono); font-size: 0.7rem; color: var(--text-dim); }
+
+    /* HEADER */
+    .header { text-align: center; margin-bottom: 2rem; }
+    .header-emoji { font-size: 3.5rem; display: block; margin-bottom: 0.3rem; }
+    .header h1 {
+      font-size: 2rem; font-weight: 900;
+      background: linear-gradient(135deg, var(--purple), var(--pink), var(--orange));
+      background-size: 200% 200%; animation: grad 4s ease infinite;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    @keyframes grad { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
+    .header-sub { font-size: 0.85rem; color: var(--text-dim); font-weight: 700; margin-top: 0.2rem; }
+
+    /* STORY CARDS - meaningful narrative */
+    .story-row {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem; margin-bottom: 2rem;
+    }
+    .story-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+      padding: 1.2rem; box-shadow: var(--shadow); transition: all 0.2s;
+      position: relative; overflow: hidden; cursor: default;
+    }
+    .story-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); }
+    .story-card .accent-bar {
+      position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: 16px 16px 0 0;
+    }
+    .story-emoji { font-size: 1.8rem; margin-bottom: 0.4rem; display: block; }
+    .story-value { font-size: 1.6rem; font-weight: 900; color: var(--text); }
+    .story-title { font-size: 0.78rem; font-weight: 700; color: var(--text-sub); margin-top: 0.1rem; }
+    .story-tip {
+      font-size: 0.68rem; color: var(--text-dim); margin-top: 0.4rem; line-height: 1.4;
+      padding-top: 0.4rem; border-top: 1px dashed var(--border);
+    }
+
+    /* PROJECT TABS */
+    .project-tabs {
+      display: flex; gap: 0.4rem; margin-bottom: 1.5rem; flex-wrap: wrap;
+      justify-content: center;
+    }
+    .proj-tab {
+      background: var(--bg2); border: 1px solid var(--border); border-radius: 20px;
+      color: var(--text-dim); padding: 0.45rem 1rem;
+      cursor: pointer; font-size: 0.78rem; font-weight: 700;
+      transition: all 0.2s; font-family: var(--body);
+    }
+    .proj-tab:hover { color: var(--purple); border-color: var(--purple); background: rgba(124,92,252,0.04); }
+    .proj-tab.active {
+      background: var(--purple); color: white; border-color: var(--purple);
+      box-shadow: 0 2px 10px rgba(124,92,252,0.25);
+    }
+    .proj-tab .count { font-family: var(--mono); font-size: 0.65rem; opacity: 0.7; margin-left: 0.2rem; }
+
+    /* PROJECT INFO */
+    .project-info {
+      background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+      padding: 1.2rem 1.5rem; margin-bottom: 1.5rem; box-shadow: var(--shadow);
+      display: none; animation: fadeIn 0.3s ease;
+    }
+    .project-info.active { display: flex; align-items: center; gap: 1.2rem; flex-wrap: wrap; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+    .proj-icon { font-size: 2.5rem; }
+    .proj-details { flex: 1; min-width: 200px; }
+    .proj-name { font-size: 1.1rem; font-weight: 900; color: var(--text); }
+    .proj-desc { font-size: 0.8rem; color: var(--text-sub); margin-top: 0.15rem; }
+    .proj-meta { display: flex; gap: 0.8rem; margin-top: 0.5rem; flex-wrap: wrap; }
+    .proj-meta-tag {
+      font-family: var(--mono); font-size: 0.65rem; padding: 0.2rem 0.6rem;
+      border-radius: 8px; background: var(--bg2); color: var(--text-dim); font-weight: 600;
+    }
+    .proj-status {
+      font-size: 0.65rem; font-weight: 800; padding: 0.2rem 0.6rem;
+      border-radius: 8px; text-transform: uppercase;
+    }
+    .status-active { background: rgba(46,207,122,0.1); color: var(--green); }
+    .status-staging { background: rgba(255,193,7,0.1); color: #d68910; }
+    .status-init { background: rgba(74,158,255,0.1); color: var(--blue); }
+    .status-archive { background: rgba(153,154,170,0.1); color: var(--text-dim); }
+
+    /* SECTION TITLE */
+    .section-title {
+      font-size: 1rem; font-weight: 800; color: var(--text);
+      margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;
+    }
+
+    /* TIMELINE */
+    .timeline { position: relative; padding-left: 1.2rem; }
+    .timeline::before {
+      content: ''; position: absolute; left: 4px; top: 0; bottom: 0;
+      width: 2px; background: linear-gradient(180deg, var(--purple), var(--pink), var(--orange));
+      border-radius: 2px; opacity: 0.2;
+    }
+
+    .tl-day { margin-bottom: 1rem; }
+    .tl-date {
+      font-family: var(--mono); font-size: 0.75rem; font-weight: 700;
+      color: var(--purple); margin-bottom: 0.3rem; position: relative;
+    }
+    .tl-date::before {
+      content: ''; position: absolute; left: -1.2rem; top: 50%;
+      width: 10px; height: 10px; border-radius: 50%; transform: translate(-1px, -50%);
+      background: white; border: 2.5px solid var(--purple);
+      box-shadow: 0 0 0 3px rgba(124,92,252,0.12);
+    }
+    .tl-date .day-count {
+      font-size: 0.6rem; background: rgba(124,92,252,0.08); color: var(--purple);
+      padding: 0.1rem 0.4rem; border-radius: 8px; margin-left: 0.4rem; font-weight: 600;
+    }
+
+    .tl-item {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 0.5rem 0.8rem; margin-bottom: 0.3rem;
+      display: flex; align-items: flex-start; gap: 0.5rem;
+      transition: all 0.15s; cursor: default;
+    }
+    .tl-item:hover {
+      background: var(--card-hover); border-color: rgba(124,92,252,0.2);
+      transform: translateX(3px); box-shadow: var(--shadow);
+    }
+
+    .tl-badge {
+      font-family: var(--mono); font-size: 0.55rem; font-weight: 700;
+      padding: 0.12rem 0.4rem; border-radius: 6px;
+      text-transform: uppercase; white-space: nowrap; flex-shrink: 0; margin-top: 0.12rem;
+    }
+    .tl-badge.feat { background: rgba(46,207,122,0.12); color: var(--green); }
+    .tl-badge.fix { background: rgba(74,158,255,0.12); color: var(--blue); }
+    .tl-badge.docs { background: rgba(124,92,252,0.12); color: var(--purple); }
+    .tl-badge.merge { background: rgba(255,193,7,0.12); color: #d68910; }
+    .tl-badge.refactor { background: rgba(255,107,157,0.12); color: var(--pink); }
+    .tl-badge.init { background: rgba(0,196,180,0.12); color: var(--cyan); }
+
+    .tl-msg { font-size: 0.78rem; color: var(--text-sub); line-height: 1.4; flex: 1; }
+    .tl-proj-tag {
+      font-family: var(--mono); font-size: 0.5rem; font-weight: 700;
+      padding: 0.05rem 0.3rem; border-radius: 4px; margin-left: 0.3rem;
+    }
+    .tl-hash {
+      font-family: var(--mono); font-size: 0.6rem; color: var(--text-dim);
+      flex-shrink: 0; opacity: 0.5;
+    }
+
+    /* PAGINATION */
+    .paging {
+      display: flex; justify-content: center; align-items: center;
+      gap: 0.5rem; margin-top: 1.5rem;
+    }
+    .page-btn {
+      background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+      padding: 0.5rem 1rem; cursor: pointer; font-family: var(--body);
+      font-size: 0.8rem; font-weight: 700; color: var(--text-sub);
+      transition: all 0.2s;
+    }
+    .page-btn:hover { color: var(--purple); border-color: var(--purple); }
+    .page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .page-btn.active { background: var(--purple); color: white; border-color: var(--purple); }
+    .page-info {
+      font-family: var(--mono); font-size: 0.7rem; color: var(--text-dim);
+      padding: 0.3rem 0.8rem;
+    }
+    .page-dots {
+      display: flex; gap: 0.3rem; align-items: center;
+    }
+    .page-dot {
+      width: 8px; height: 8px; border-radius: 50%; background: var(--border);
+      cursor: pointer; transition: all 0.2s;
+    }
+    .page-dot.active { background: var(--purple); transform: scale(1.3); }
+    .page-dot:hover { background: var(--purple); opacity: 0.6; }
+
+    /* FOOTER */
+    .footer {
+      text-align: center; margin-top: 2rem; padding: 1rem 0;
+      font-size: 0.7rem; color: var(--text-dim); font-weight: 600;
+    }
+
+    @media (max-width: 640px) {
+      .container { padding: 0.8rem; }
+      .header h1 { font-size: 1.5rem; }
+      .story-row { grid-template-columns: repeat(2, 1fr); gap: 0.6rem; }
+      .story-card { padding: 0.8rem; }
+      .story-value { font-size: 1.2rem; }
+      .proj-tab { padding: 0.35rem 0.7rem; font-size: 0.7rem; }
+      .project-info { padding: 0.8rem; }
+      .tl-item { padding: 0.4rem 0.6rem; }
+      .tl-hash { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="nav">
+    <a href="/" class="nav-back">← HOME</a>
+    <div class="nav-time" id="nav-time"></div>
+  </div>
+
+  <div class="header">
+    <span class="header-emoji">💼</span>
+    <h1>Work Log</h1>
+    <div class="header-sub">SinSa-Code Engineering</div>
+  </div>
+
+  <div class="story-row" id="story-row"></div>
+
+  <div class="project-tabs" id="project-tabs"></div>
+  <div id="project-panels"></div>
+
+  <div class="section-title" id="timeline-title">📜 타임라인</div>
+  <div class="timeline" id="timeline"></div>
+  <div class="paging" id="paging"></div>
+
+  <div class="footer">aurore.work // Work Log</div>
+</div>
+
+<script>
+const projects = [
+  {
+    id: 'all', name: '전체', icon: '📡', status: 'active',
+    desc: '전체 프로젝트 통합 타임라인', tech: '-', repo: '-'
+  },
+  {
+    id: 'sinsa-agency', name: 'Sinsa Agency', icon: '🏢', status: 'active',
+    desc: '웹 에이전시 SaaS 플랫폼 — 결제, 구독, 어드민, 포트폴리오',
+    tech: 'Next.js + Prisma + TossPayments', repo: 'SinSa-Code/sinsa-agency',
+    color: '#7c5cfc',
+    commits: [
+      { date: '2026-03-05', hash: '613d79c', type: 'feat', msg: '포트폴리오/OG 이미지를 실사 목업으로 교체' },
+      { date: '2026-03-05', hash: '1e367b1', type: 'fix', msg: '메인페이지 이미지 CSS 개선 — 직사각형 프레임 제거' },
+      { date: '2026-03-05', hash: '10a16fc', type: 'feat', msg: '메인페이지 이미지 전면 교체 (Imagen 4.0 Ultra)' },
+      { date: '2026-03-05', hash: '370392a', type: 'feat', msg: '스테이징 환경 구축 + SEO/OG 이미지 강화' },
+      { date: '2026-03-03', hash: '357644b', type: 'fix', msg: '메인페이지 폰트 통일 및 결제 계산 표시 개선' },
+      { date: '2026-03-02', hash: '6afb322', type: 'fix', msg: '위저드 세션 생성 제한 10회/분으로 완화' },
+      { date: '2026-03-02', hash: 'e60b801', type: 'fix', msg: '운영 포트폴리오 이미지 누락 복구' },
+      { date: '2026-03-02', hash: '200e9f1', type: 'feat', msg: '메인페이지 리뉴얼 반영' },
+      { date: '2026-02-28', hash: '57032a5', type: 'feat', msg: '결제 실패 후 PENDING 주문 재결제 UX 개선' },
+      { date: '2026-02-28', hash: '316781f', type: 'feat', msg: 'Sentry 에러 모니터링 어드민 대시보드 통합' },
+      { date: '2026-02-28', hash: '4519dbb', type: 'feat', msg: '어드민 분석 대시보드 4개 모듈 추가' },
+      { date: '2026-02-28', hash: 'f2c8ee3', type: 'fix', msg: '대시보드 헤더 "활성 프로젝트" → 진행/완료 상태별 요약 표시' },
+      { date: '2026-02-28', hash: '7f92ff4', type: 'fix', msg: '다음 결제 정보 — 금액 0원일 때 "-" 표시로 통일' },
+      { date: '2026-02-28', hash: '61f1460', type: 'feat', msg: 'Mock 빌링키 테스트 인프라 구축' },
+      { date: '2026-02-28', hash: '152a4c4', type: 'fix', msg: 'B8 Hydration 에러 수정 + C3 빌링키 비활성 알림 추가' },
+      { date: '2026-02-27', hash: '4921760', type: 'fix', msg: 'UX 개선 — 배너 문구 정확성 + autoRenew 분기 배너' },
+      { date: '2026-02-27', hash: 'dd47b4b', type: 'fix', msg: 'Dashboard Summary API + 경고 배너' },
+      { date: '2026-02-27', hash: '6a4510e', type: 'fix', msg: 'Admin Requests — 사이드바 링크 + 에러 표시 + 다크테마' },
+      { date: '2026-02-27', hash: 'f553cc2', type: 'fix', msg: '5-페르소나 프로덕션 테스트 10건 일괄 수정' },
+      { date: '2026-02-27', hash: 'a769a27', type: 'feat', msg: '티켓 상태 전이 매트릭스 도입' },
+      { date: '2026-02-27', hash: '0c24923', type: 'fix', msg: 'Pipeline 파싱, Ticket 400, 계약일 조건 Quick Fix' },
+      { date: '2026-02-27', hash: '515869a', type: 'fix', msg: 'Event/Notification — expired 페이로드 + 티켓 알림 확대' },
+      { date: '2026-02-27', hash: '9f117f8', type: 'fix', msg: 'DB 백업 워크플로우 수정 — pg_dump + R2 전송' },
+      { date: '2026-02-27', hash: 'ca548d4', type: 'fix', msg: '사업자 등록 서류 필수 완화' },
+    ]
+  },
+  {
+    id: 'rigel-tax', name: 'Rigel Tax', icon: '📊', status: 'active',
+    desc: '리겔세무 세무사 사이트 — 어드민, 상담, 세액산출, 분석',
+    tech: 'Next.js + Prisma + Umami + Playwright', repo: 'SinSa-Code/rigel-tax',
+    color: '#ff6b4a',
+    commits: [
+      { date: '2026-03-04', hash: '99cd043', type: 'feat', msg: '상담 목록 URL 필터 파라미터 연동' },
+      { date: '2026-03-04', hash: 'f80678a', type: 'fix', msg: 'stats API raw SQL 테이블/컬럼명 수정' },
+      { date: '2026-03-04', hash: '0c24923', type: 'feat', msg: '어드민 대시보드 차트 개편 + Umami 프록시 연동' },
+      { date: '2026-03-04', hash: '4ddc391', type: 'fix', msg: '어드민 로그인 페이지 모바일/데스크탑 최적화' },
+      { date: '2026-03-04', hash: '515869a', type: 'feat', msg: 'Umami 방문 분석 연동 — 트래킹 + 어드민 분석 페이지' },
+      { date: '2026-03-04', hash: '9f117f8', type: 'fix', msg: 'Dockerfile .next/cache 권한 + E2E selectChip exact 매칭' },
+      { date: '2026-03-04', hash: 'f628d75', type: 'feat', msg: 'Playwright E2E 테스트 20건 + 스테이징 rate limit 비활성화' },
+      { date: '2026-03-04', hash: '00cb2ab', type: 'feat', msg: 'SMS 바로가기 링크 + Sentry 에러 모니터링 설정' },
+      { date: '2026-03-04', hash: 'a769a27', type: 'fix', msg: 'admin 리다이렉트 X-Robots-Tag 헤더 추가' },
+      { date: '2026-03-04', hash: 'ca548d4', type: 'feat', msg: '메인페이지 킬포인트 형광펜 애니메이션' },
+      { date: '2026-03-04', hash: 'abdd988', type: 'feat', msg: '스테이징 DB 연결 + SMS 실발송 활성화' },
+      { date: '2026-03-04', hash: '3b5f825', type: 'fix', msg: 'Docker 빌드 Turbopack → webpack 전환' },
+      { date: '2026-03-04', hash: 'ebf0e91', type: 'merge', msg: 'feature/admin-panel → develop 머지' },
+      { date: '2026-03-04', hash: '5038c55', type: 'feat', msg: '어드민 패널 구축 — DB/인증/상담관리/세액산출/SEO' },
+      { date: '2026-03-04', hash: '36e2b0a', type: 'feat', msg: '디자인 리뉴얼 — 브랜드 CI, 폰트, 페이지별 OG' },
+      { date: '2026-03-04', hash: 'bb23637', type: 'feat', msg: 'SNS 공유 이미지 리뉴얼' },
+      { date: '2026-03-04', hash: 'c9cfe47', type: 'feat', msg: 'AI 생성 이미지로 ImageBriefMock 교체' },
+      { date: '2026-03-04', hash: '56b4ea0', type: 'docs', msg: '스테이징 환경 인프라 문서' },
+      { date: '2026-03-04', hash: '39e2c36', type: 'feat', msg: '스테이징 환경 구성 + 상담 문의 기능' },
+      { date: '2026-03-04', hash: '452eafc', type: 'docs', msg: '배포/인프라 운영 문서화' },
+    ]
+  },
+  {
+    id: 'template', name: 'Templates', icon: '🎨', status: 'active',
+    desc: '업종별 랜딩 페이지 템플릿 시스템 — 20+ 업종, Astro 기반',
+    tech: 'Astro + Tailwind CSS', repo: 'SinSa-Code/Template',
+    color: '#2ecf7a',
+    commits: [
+      { date: '2026-03-06', hash: '8bc5b5a', type: 'init', msg: 'v3 Editorial Design System 초기화' },
+      { date: '2026-03-06', hash: '0025b35', type: 'feat', msg: '20개 업종 템플릿 전체 구현 + QA 통과 (S등급 18, A등급 2)' },
+      { date: '2026-03-06', hash: '7ff237b', type: 'docs', msg: 'PROGRESS.md 전체 파이프라인 완료 반영' },
+      { date: '2026-03-06', hash: '6f62acc', type: 'refactor', msg: 'interior 템플릿 품질 개선' },
+      { date: '2026-03-05', hash: '1d645d1', type: 'refactor', msg: 'gym/lawfirm/wedding 5사이클 개선 + 3종 추가' },
+      { date: '2026-03-05', hash: 'cb3631d', type: 'feat', msg: '10개 템플릿 일괄 추가 — accounting, bakery 등' },
+      { date: '2026-03-05', hash: 'e51aa2f', type: 'refactor', msg: '치과 템플릿 5회 리뷰 개선' },
+      { date: '2026-03-05', hash: 'c8ae616', type: 'feat', msg: '법률사무소/뷰티살롱/웨딩플래너 추가' },
+      { date: '2026-03-05', hash: 'd570d85', type: 'feat', msg: '헬스장 템플릿 — 블랙+레드 Bold Energy' },
+      { date: '2026-03-05', hash: '9c0f3fc', type: 'feat', msg: '치과 템플릿 — 민트/티일 클리닉 디자인' },
+      { date: '2026-03-05', hash: '6d60d65', type: 'feat', msg: 'academy 템플릿 — 대학 로고, 차트 애니메이션' },
+      { date: '2026-03-05', hash: 'b1ff78a', type: 'init', msg: 'Initial commit: Astro landing page templates' },
+    ]
+  },
+  {
+    id: 'admin-sinsa', name: 'Admin Sinsa', icon: '🔐', status: 'init',
+    desc: '신사 통합 어드민 패널 — 결제 테스트, 대시보드',
+    tech: 'Next.js + Prisma', repo: 'SinSa-Code/admin-sinsa',
+    color: '#4a9eff',
+    commits: [
+      { date: '2026-01-22', hash: 'fe10f1b', type: 'fix', msg: '결제 테스트 중' },
+      { date: '2026-01-22', hash: '4a4b4ce', type: 'fix', msg: '실제 결제 이전까지' },
+      { date: '2026-01-22', hash: 'b10e2ac', type: 'fix', msg: 'error 개선, 대시보드 목업까지' },
+      { date: '2026-01-21', hash: 'f553cc2', type: 'fix', msg: 'prisma setting & signup && login' },
+      { date: '2026-01-20', hash: '0e7a39f', type: 'fix', msg: 'prisma setting' },
+      { date: '2026-01-19', hash: '0fca093', type: 'init', msg: 'Initial commit from Create Next App' },
+    ]
+  },
+  {
+    id: 'kkachi-omuk', name: 'Kkachi Omuk', icon: '🐦', status: 'staging',
+    desc: '까치어묵 — 젠킨스 CI/CD + 2차 미팅 준비',
+    tech: 'Next.js + Jenkins', repo: 'SinSa-Code/kkachi-omuk',
+    color: '#ffc107',
+    commits: [
+      { date: '2026-02-01', hash: 'e3ecb46', type: 'fix', msg: '2차 미팅 준비' },
+      { date: '2026-02-01', hash: '0d47965', type: 'fix', msg: '2차 미팅 준비' },
+      { date: '2026-01-25', hash: '2dd95c7', type: 'feat', msg: '젠킨스 셋팅' },
+      { date: '2026-01-25', hash: '322564d', type: 'init', msg: 'Initial commit from Create Next App' },
+    ]
+  },
+  {
+    id: 'ls-tax-next', name: 'LS Tax', icon: '💼', status: 'archive',
+    desc: 'LS세무 사이트 — song-tax에서 이관 완료',
+    tech: 'Next.js', repo: 'SinSa-Code/ls-tax-next',
+    color: '#999aaa',
+    commits: [
+      { date: '2026-01-18', hash: '8b2ab28', type: 'fix', msg: 'song tax → ls tax 이관' },
+      { date: '2026-01-18', hash: 'c59993a', type: 'fix', msg: '이관 완료' },
+      { date: '2026-01-18', hash: 'a662860', type: 'init', msg: 'Initial commit from Create Next App' },
+    ]
+  }
+];
+
+const PAGE_SIZE = 15;
+let currentPage = 0;
+let currentProject = 'all';
+
+function init() {
+  renderStoryCards();
+  renderTabs();
+  selectProject('all');
+  updateClock();
+  setInterval(updateClock, 1000);
+}
+
+function updateClock() {
+  document.getElementById('nav-time').textContent =
+    new Date().toLocaleString('ko-KR', { year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false });
+}
+
+function getAllCommits() {
+  return projects.filter(p => p.commits).flatMap(p =>
+    p.commits.map(c => ({ ...c, project: p.id, projectColor: p.color }))
+  );
+}
+
+function renderStoryCards() {
+  const all = getAllCommits();
+  const projsWithCommits = projects.filter(p => p.commits);
+  const activeProjCount = projsWithCommits.filter(p => p.status === 'active').length;
+  const dates = [...new Set(all.map(c => c.date))].sort();
+  const recentDate = dates[dates.length - 1];
+  const recentCount = all.filter(c => c.date === recentDate).length;
+  const feats = all.filter(c => c.type === 'feat').length;
+  const fixes = all.filter(c => c.type === 'fix').length;
+
+  // Find busiest day
+  const dayCounts = {};
+  all.forEach(c => { dayCounts[c.date] = (dayCounts[c.date] || 0) + 1; });
+  const busiest = Object.entries(dayCounts).sort((a,b) => b[1] - a[1])[0];
+
+  // Work span
+  const firstDate = dates[0];
+  const daySpan = Math.ceil((new Date(recentDate) - new Date(firstDate)) / 86400000) + 1;
+
+  const stories = [
+    {
+      emoji: '🚀', value: activeProjCount + '/' + projsWithCommits.length,
+      title: '활성 프로젝트', color: 'var(--green)',
+      tip: '현재 활발히 개발 중인 프로젝트 수 / 전체 프로젝트 수. active 상태만 카운트.'
+    },
+    {
+      emoji: '📝', value: all.length,
+      title: '전체 커밋', color: 'var(--purple)',
+      tip: '모든 프로젝트를 합산한 총 커밋 수. 하나의 커밋 = 하나의 의미있는 코드 변경 단위.'
+    },
+    {
+      emoji: '✨', value: feats,
+      title: '새 기능 출시', color: 'var(--orange)',
+      tip: 'feat 타입 커밋. 사용자가 실제로 체감하는 새 기능이 추가된 횟수.'
+    },
+    {
+      emoji: '🔧', value: fixes,
+      title: '버그 수정', color: 'var(--blue)',
+      tip: 'fix 타입 커밋. 발견된 버그나 이슈를 고친 횟수. 안정성의 척도.'
+    },
+    {
+      emoji: '🔥', value: busiest[1] + '개',
+      title: formatDate(busiest[0]) + ' 폭풍코딩',
+      color: 'var(--pink)',
+      tip: '가장 많은 커밋을 한 날. 하루에 ' + busiest[1] + '개의 변경을 밀어넣은 날!'
+    },
+    {
+      emoji: '📅', value: daySpan + '일',
+      title: '작업 기간', color: 'var(--cyan)',
+      tip: firstDate + ' ~ ' + recentDate + '. 첫 커밋부터 마지막 커밋까지의 총 일수.'
+    },
+  ];
+
+  const el = document.getElementById('story-row');
+  stories.forEach(s => {
+    const card = document.createElement('div');
+    card.className = 'story-card';
+    card.innerHTML = `
+      <div class="accent-bar" style="background:${s.color}"></div>
+      <span class="story-emoji">${s.emoji}</span>
+      <div class="story-value">${s.value}</div>
+      <div class="story-title">${s.title}</div>
+      <div class="story-tip">${s.tip}</div>
+    `;
+    el.appendChild(card);
+  });
+}
+
+function renderTabs() {
+  const el = document.getElementById('project-tabs');
+  projects.forEach(p => {
+    const btn = document.createElement('button');
+    btn.className = 'proj-tab';
+    btn.dataset.id = p.id;
+    const count = p.commits ? p.commits.length : getAllCommits().length;
+    btn.innerHTML = `${p.icon} ${p.name} <span class="count">${count}</span>`;
+    btn.addEventListener('click', () => selectProject(p.id));
+    el.appendChild(btn);
+  });
+}
+
+function selectProject(id) {
+  currentProject = id;
+  currentPage = 0;
+  document.querySelectorAll('.proj-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.id === id);
+  });
+  renderProjectInfo(id);
+  renderTimeline();
+}
+
+function renderProjectInfo(id) {
+  const panelsEl = document.getElementById('project-panels');
+  panelsEl.innerHTML = '';
+  if (id === 'all') return;
+
+  const p = projects.find(pr => pr.id === id);
+  if (!p) return;
+
+  const panel = document.createElement('div');
+  panel.className = 'project-info active';
+  panel.innerHTML = `
+    <div class="proj-icon">${p.icon}</div>
+    <div class="proj-details">
+      <div class="proj-name">${p.name}</div>
+      <div class="proj-desc">${p.desc}</div>
+      <div class="proj-meta">
+        <span class="proj-meta-tag">${p.tech}</span>
+        <span class="proj-meta-tag">${p.repo}</span>
+        <span class="proj-meta-tag">${p.commits ? p.commits.length : 0} commits</span>
+        <span class="proj-status status-${p.status}">${p.status}</span>
+      </div>
+    </div>
+  `;
+  panelsEl.appendChild(panel);
+}
+
+function getFilteredCommits() {
+  if (currentProject === 'all') {
+    return getAllCommits().sort((a, b) => b.date.localeCompare(a.date));
+  }
+  const p = projects.find(pr => pr.id === currentProject);
+  return p && p.commits ? p.commits.map(c => ({ ...c, project: p.id, projectColor: p.color })) : [];
+}
+
+function renderTimeline() {
+  const el = document.getElementById('timeline');
+  el.innerHTML = '';
+
+  const commits = getFilteredCommits();
+  const totalPages = Math.ceil(commits.length / PAGE_SIZE);
+  const start = currentPage * PAGE_SIZE;
+  const slice = commits.slice(start, start + PAGE_SIZE);
+
+  // Update title
+  const title = document.getElementById('timeline-title');
+  title.textContent = `📜 타임라인 (${commits.length}건)`;
+
+  // Group by date
+  const grouped = {};
+  slice.forEach(c => {
+    if (!grouped[c.date]) grouped[c.date] = [];
+    grouped[c.date].push(c);
+  });
+
+  Object.keys(grouped).sort((a, b) => b.localeCompare(a)).forEach(date => {
+    const dayEl = document.createElement('div');
+    dayEl.className = 'tl-day';
+    dayEl.innerHTML = `<div class="tl-date">${formatDate(date)} <span class="day-count">${grouped[date].length}건</span></div>`;
+
+    grouped[date].forEach(c => {
+      const item = document.createElement('div');
+      item.className = 'tl-item';
+      const projTag = (currentProject === 'all' && c.project)
+        ? `<span class="tl-proj-tag" style="background:${c.projectColor}15;color:${c.projectColor}">${c.project}</span>`
+        : '';
+      item.innerHTML = `
+        <span class="tl-badge ${c.type}">${c.type}</span>
+        <span class="tl-msg">${c.msg}${projTag}</span>
+        <span class="tl-hash">${c.hash}</span>
+      `;
+      dayEl.appendChild(item);
+    });
+
+    el.appendChild(dayEl);
+  });
+
+  renderPaging(totalPages);
+}
+
+function renderPaging(totalPages) {
+  const el = document.getElementById('paging');
+  el.innerHTML = '';
+  if (totalPages <= 1) return;
+
+  // Prev button
+  const prev = document.createElement('button');
+  prev.className = 'page-btn';
+  prev.textContent = '← 이전';
+  prev.disabled = currentPage === 0;
+  prev.addEventListener('click', () => { currentPage--; renderTimeline(); scrollToTimeline(); });
+  el.appendChild(prev);
+
+  // Page dots
+  const dots = document.createElement('div');
+  dots.className = 'page-dots';
+  for (let i = 0; i < totalPages; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'page-dot' + (i === currentPage ? ' active' : '');
+    dot.addEventListener('click', () => { currentPage = i; renderTimeline(); scrollToTimeline(); });
+    dots.appendChild(dot);
+  }
+  el.appendChild(dots);
+
+  // Page info
+  const info = document.createElement('span');
+  info.className = 'page-info';
+  info.textContent = `${currentPage + 1} / ${totalPages}`;
+  el.appendChild(info);
+
+  // Next button
+  const next = document.createElement('button');
+  next.className = 'page-btn';
+  next.textContent = '다음 →';
+  next.disabled = currentPage === totalPages - 1;
+  next.addEventListener('click', () => { currentPage++; renderTimeline(); scrollToTimeline(); });
+  el.appendChild(next);
+}
+
+function scrollToTimeline() {
+  document.getElementById('timeline-title').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function formatDate(dateStr) {
+  const d = new Date(dateStr);
+  const days = ['일', '월', '화', '수', '목', '금', '토'];
+  return `${d.getMonth() + 1}/${d.getDate()} (${days[d.getDay()]})`;
+}
+
+init();
+</script>
+</body>
+</html>

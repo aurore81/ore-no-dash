@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SYNC // Claude + Zenith</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap');
+
+    :root {
+      --bg: #f8f9fc;
+      --bg2: #eef0f6;
+      --card: #ffffff;
+      --card-hover: #fafaff;
+      --border: #e0e4ee;
+      --text: #1e1e2e;
+      --text-sub: #555568;
+      --text-dim: #999aaa;
+      --purple: #7c5cfc;
+      --purple2: #a29bfe;
+      --pink: #ff6b9d;
+      --blue: #4a9eff;
+      --green: #2ecf7a;
+      --orange: #ff8c42;
+      --yellow: #ffc107;
+      --red: #ff5252;
+      --cyan: #00c4b4;
+      --shadow: 0 2px 12px rgba(124,92,252,0.06);
+      --shadow-hover: 0 8px 24px rgba(124,92,252,0.10);
+      --mono: 'JetBrains Mono', monospace;
+      --body: 'Nunito', sans-serif;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: var(--body); background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
+
+    /* NAV */
+    .nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+    .nav-back {
+      font-family: var(--mono); font-size: 0.75rem; color: var(--text-dim);
+      text-decoration: none; padding: 0.4rem 0.8rem; border-radius: 10px;
+      border: 1px solid var(--border); transition: all 0.2s; font-weight: 600;
+    }
+    .nav-back:hover { color: var(--purple); border-color: var(--purple); }
+
+    /* HEADER */
+    .header { text-align: center; margin-bottom: 2rem; }
+    .header-emoji { font-size: 3.5rem; display: block; margin-bottom: 0.3rem; }
+    .header h1 {
+      font-size: 2rem; font-weight: 900;
+      background: linear-gradient(135deg, var(--purple), var(--pink), var(--green));
+      background-size: 200% 200%; animation: grad 4s ease infinite;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    @keyframes grad { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
+    .header-sub { font-size: 0.85rem; color: var(--text-dim); font-weight: 700; margin-top: 0.2rem; }
+    .header-badge {
+      display: inline-block; margin-top: 0.5rem;
+      font-family: var(--mono); font-size: 0.7rem; color: var(--purple);
+      background: rgba(124,92,252,0.06); padding: 0.3rem 1rem; border-radius: 20px;
+    }
+
+    /* STORY CARDS */
+    .story-row {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 0.8rem; margin-bottom: 2rem;
+    }
+    .story-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+      padding: 1rem; box-shadow: var(--shadow); transition: all 0.2s;
+      position: relative; overflow: hidden; text-align: center;
+    }
+    .story-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); }
+    .story-card .bar { position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: 16px 16px 0 0; }
+    .story-emoji { font-size: 1.5rem; display: block; margin-bottom: 0.2rem; }
+    .story-value { font-size: 1.6rem; font-weight: 900; }
+    .story-label { font-size: 0.7rem; font-weight: 700; color: var(--text-sub); }
+    .story-tip { font-size: 0.6rem; color: var(--text-dim); margin-top: 0.3rem; line-height: 1.3; border-top: 1px dashed var(--border); padding-top: 0.3rem; }
+
+    /* SECTION */
+    .section { margin-bottom: 2rem; }
+    .section-title { font-size: 1rem; font-weight: 800; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+
+    /* CARDS */
+    .card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+      padding: 1.2rem; box-shadow: var(--shadow);
+    }
+
+    /* HEATMAP */
+    .heatmap-grid { display: grid; grid-template-rows: repeat(7, 1fr); grid-auto-flow: column; gap: 3px; }
+    .hm-cell { width: 14px; height: 14px; border-radius: 3px; background: var(--bg2); transition: all 0.15s; position: relative; cursor: pointer; }
+    .hm-cell:hover { transform: scale(1.6); z-index: 10; }
+    .hm-cell[data-count="1"] { background: rgba(124,92,252,0.15); }
+    .hm-cell[data-count="2"] { background: rgba(124,92,252,0.3); }
+    .hm-cell[data-count="3"] { background: rgba(124,92,252,0.45); }
+    .hm-cell[data-count="4"] { background: rgba(124,92,252,0.6); }
+    .hm-cell[data-count="5"] { background: rgba(124,92,252,0.8); }
+    .hm-cell.hot { background: var(--purple); box-shadow: 0 0 6px rgba(124,92,252,0.4); }
+    .hm-cell .tip {
+      display: none; position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%);
+      background: var(--text); color: white; font-family: var(--mono); font-size: 0.55rem;
+      padding: 0.2rem 0.5rem; border-radius: 6px; white-space: nowrap; z-index: 100;
+    }
+    .hm-cell:hover .tip { display: block; }
+    .hm-legend { display: flex; align-items: center; gap: 0.3rem; margin-top: 0.5rem; justify-content: flex-end; font-family: var(--mono); font-size: 0.55rem; color: var(--text-dim); }
+    .hm-legend-cell { width: 12px; height: 12px; border-radius: 2px; }
+
+    /* FUN FACTS */
+    .fun-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 0.8rem; }
+    .fun-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+      padding: 1rem; box-shadow: var(--shadow); display: flex; align-items: flex-start; gap: 0.7rem;
+      transition: all 0.2s;
+    }
+    .fun-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); }
+    .fun-emoji { font-size: 1.8rem; flex-shrink: 0; }
+    .fun-title { font-size: 0.85rem; font-weight: 800; }
+    .fun-desc { font-size: 0.72rem; color: var(--text-sub); margin-top: 0.15rem; }
+
+    /* BAR CHART */
+    .bar-chart { display: flex; flex-direction: column; gap: 0.5rem; }
+    .bar-row { display: flex; align-items: center; gap: 0.6rem; }
+    .bar-label { font-family: var(--mono); font-size: 0.7rem; color: var(--text-sub); min-width: 70px; text-align: right; }
+    .bar-track { flex: 1; height: 24px; background: var(--bg2); border-radius: 8px; overflow: hidden; }
+    .bar-fill {
+      height: 100%; border-radius: 8px; transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+      display: flex; align-items: center; padding-left: 0.5rem;
+      font-family: var(--mono); font-size: 0.65rem; color: white; font-weight: 700;
+    }
+
+    /* DONUT */
+    .proj-chart { display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; }
+    .donut-container { position: relative; width: 160px; height: 160px; flex-shrink: 0; }
+    .donut-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
+    .donut-center .num { font-size: 1.6rem; font-weight: 900; color: var(--purple); }
+    .donut-center .label { font-size: 0.55rem; color: var(--text-dim); }
+    .proj-legend { display: flex; flex-direction: column; gap: 0.3rem; flex: 1; }
+    .proj-legend-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.78rem; color: var(--text-sub); padding: 0.25rem 0.5rem; border-radius: 8px; transition: background 0.2s; }
+    .proj-legend-item:hover { background: var(--bg2); }
+    .proj-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+    .proj-count { font-family: var(--mono); font-size: 0.65rem; color: var(--text-dim); margin-left: auto; }
+
+    /* HOUR / WEEK CHARTS */
+    .hour-chart { display: flex; align-items: flex-end; gap: 2px; height: 90px; }
+    .hour-bar { flex: 1; background: var(--bg2); border-radius: 4px 4px 0 0; transition: all 0.3s; position: relative; min-width: 6px; cursor: pointer; }
+    .hour-bar:hover { background: var(--purple) !important; }
+    .hour-bar .h-tip { display: none; position: absolute; bottom: 105%; left: 50%; transform: translateX(-50%); background: var(--text); color: white; font-family: var(--mono); font-size: 0.5rem; padding: 0.15rem 0.35rem; border-radius: 4px; white-space: nowrap; }
+    .hour-bar:hover .h-tip { display: block; }
+    .hour-labels { display: flex; gap: 2px; margin-top: 0.3rem; }
+    .hour-labels span { flex: 1; text-align: center; font-family: var(--mono); font-size: 0.45rem; color: var(--text-dim); }
+
+    .week-chart { display: flex; align-items: flex-end; gap: 6px; height: 110px; }
+    .week-bar-group { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0.2rem; }
+    .week-bar { width: 100%; border-radius: 6px 6px 0 0; transition: all 0.3s; }
+    .week-label { font-family: var(--mono); font-size: 0.6rem; color: var(--text-dim); }
+    .week-count { font-family: var(--mono); font-size: 0.6rem; color: var(--text-sub); font-weight: 700; }
+
+    /* TIMELINE */
+    .tl-controls { display: flex; gap: 0.3rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .tl-btn {
+      background: var(--bg2); border: 1px solid var(--border); color: var(--text-dim);
+      padding: 0.3rem 0.8rem; border-radius: 20px; cursor: pointer;
+      font-family: var(--mono); font-size: 0.65rem; transition: all 0.2s; font-weight: 600;
+    }
+    .tl-btn:hover { color: var(--purple); border-color: var(--purple); }
+    .tl-btn.active { background: var(--purple); color: white; border-color: var(--purple); }
+
+    .tl-day { margin-bottom: 0.8rem; }
+    .tl-date { font-family: var(--mono); font-size: 0.75rem; font-weight: 700; color: var(--purple); margin-bottom: 0.3rem; }
+    .tl-date .count-badge { font-size: 0.6rem; background: rgba(124,92,252,0.08); padding: 0.1rem 0.4rem; border-radius: 8px; }
+    .tl-item { display: flex; align-items: flex-start; gap: 0.5rem; padding: 0.35rem 0.5rem; border-radius: 8px; transition: background 0.15s; margin-bottom: 0.1rem; }
+    .tl-item:hover { background: var(--bg2); }
+    .tl-tag { font-family: var(--mono); font-size: 0.55rem; padding: 0.1rem 0.35rem; border-radius: 4px; text-transform: uppercase; font-weight: 700; flex-shrink: 0; margin-top: 0.12rem; }
+    .tl-tag.feat { background: rgba(46,207,122,0.12); color: var(--green); }
+    .tl-tag.fix { background: rgba(74,158,255,0.12); color: var(--blue); }
+    .tl-tag.docs { background: rgba(124,92,252,0.12); color: var(--purple); }
+    .tl-tag.chore { background: rgba(99,110,114,0.12); color: #636e72; }
+    .tl-tag.test { background: rgba(225,112,85,0.12); color: var(--orange); }
+    .tl-tag.refactor { background: rgba(255,107,157,0.12); color: var(--pink); }
+    .tl-tag.other { background: rgba(178,190,195,0.12); color: var(--text-dim); }
+    .tl-msg { font-size: 0.76rem; color: var(--text-sub); line-height: 1.4; flex: 1; }
+    .tl-proj { font-family: var(--mono); font-size: 0.5rem; padding: 0.05rem 0.3rem; border-radius: 3px; margin-left: 0.3rem; }
+    .tl-time { font-family: var(--mono); font-size: 0.55rem; color: var(--text-dim); margin-left: auto; flex-shrink: 0; }
+
+    .show-more {
+      display: block; width: 100%; padding: 0.6rem; margin-top: 0.8rem;
+      background: var(--bg2); border: 1px solid var(--border); border-radius: 10px;
+      cursor: pointer; font-family: var(--body); font-size: 0.78rem; font-weight: 700; color: var(--text-dim);
+      transition: all 0.2s;
+    }
+    .show-more:hover { color: var(--purple); border-color: var(--purple); }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+    .footer { text-align: center; margin-top: 2rem; padding: 1rem 0; font-size: 0.7rem; color: var(--text-dim); font-weight: 600; }
+
+    @media (max-width: 768px) {
+      .two-col { grid-template-columns: 1fr; }
+      .proj-chart { flex-direction: column; align-items: center; }
+      .hm-cell { width: 10px; height: 10px; }
+      .story-row { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 480px) {
+      .container { padding: 0.8rem; }
+      .story-row { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="nav">
+    <a href="/" class="nav-back">← HOME</a>
+  </div>
+
+  <div class="header">
+    <span class="header-emoji">🤝</span>
+    <h1>Claude + Zenith</h1>
+    <div class="header-sub">Co-Authored Commits Tracker</div>
+    <div class="header-badge" id="header-badge">Loading...</div>
+  </div>
+
+  <div class="story-row" id="story-row"></div>
+
+  <div class="section">
+    <div class="section-title">🔥 Contribution Heatmap</div>
+    <div class="card">
+      <div class="heatmap-grid" id="heatmap"></div>
+      <div class="hm-legend">
+        <span>Less</span>
+        <div class="hm-legend-cell" style="background:var(--bg2)"></div>
+        <div class="hm-legend-cell" style="background:rgba(124,92,252,0.2)"></div>
+        <div class="hm-legend-cell" style="background:rgba(124,92,252,0.5)"></div>
+        <div class="hm-legend-cell" style="background:rgba(124,92,252,0.8)"></div>
+        <div class="hm-legend-cell" style="background:var(--purple)"></div>
+        <span>More</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">🎉 Fun Facts</div>
+    <div class="fun-facts" id="fun-facts"></div>
+  </div>
+
+  <div class="two-col">
+    <div class="section">
+      <div class="section-title">📊 By Type</div>
+      <div class="card"><div class="bar-chart" id="type-chart"></div></div>
+    </div>
+    <div class="section">
+      <div class="section-title">📁 By Project</div>
+      <div class="card"><div class="proj-chart" id="proj-chart"></div></div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="section">
+      <div class="section-title">🕐 By Hour</div>
+      <div class="card">
+        <div class="hour-chart" id="hour-chart"></div>
+        <div class="hour-labels" id="hour-labels"></div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">📅 By Day of Week</div>
+      <div class="card"><div class="week-chart" id="week-chart"></div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">📜 Timeline</div>
+    <div class="card">
+      <div class="tl-controls" id="tl-controls"></div>
+      <div id="timeline"></div>
+      <button class="show-more" id="show-more">더 보기</button>
+    </div>
+  </div>
+
+  <div class="footer">aurore.work // Claude x Zenith Collaboration</div>
+</div>
+
+<script>
+let DATA = [];
+let tlPage = 0;
+const TL_PAGE_SIZE = 30;
+let tlFilter = 'all';
+
+async function init() {
+  const res = await fetch('claude-commits.json');
+  DATA = await res.json();
+  DATA.sort((a, b) => b.iso.localeCompare(a.iso));
+
+  renderStoryCards();
+  renderHeatmap();
+  renderFunFacts();
+  renderTypeChart();
+  renderProjChart();
+  renderHourChart();
+  renderWeekChart();
+  renderTlControls();
+  renderTimeline();
+}
+
+function renderStoryCards() {
+  const dates = [...new Set(DATA.map(c => c.d))].sort();
+  const first = dates[0], last = dates[dates.length - 1];
+  const daySpan = Math.ceil((new Date(last) - new Date(first)) / 86400000) + 1;
+  const activeDays = dates.length;
+  const avgPerDay = (DATA.length / activeDays).toFixed(1);
+
+  let maxStreak = 0, cur = 0;
+  const dateSet = new Set(dates);
+  const d = new Date(first);
+  const end = new Date(last);
+  while (d <= end) {
+    if (dateSet.has(d.toISOString().slice(0, 10))) { cur++; maxStreak = Math.max(maxStreak, cur); }
+    else { cur = 0; }
+    d.setDate(d.getDate() + 1);
+  }
+
+  const dayCounts = {};
+  DATA.forEach(c => { dayCounts[c.d] = (dayCounts[c.d] || 0) + 1; });
+  const bestDay = Object.entries(dayCounts).sort((a,b) => b[1] - a[1])[0];
+
+  document.getElementById('header-badge').textContent = `${first} ~ ${last} // ${DATA.length} commits in ${daySpan} days`;
+
+  const stories = [
+    { emoji: '💜', value: DATA.length, label: 'TOTAL', color: 'var(--purple)', tip: '모든 프로젝트의 Claude 공동 작업 커밋 합계' },
+    { emoji: '📅', value: activeDays, label: 'ACTIVE DAYS', color: 'var(--blue)', tip: '적어도 1개 이상 커밋한 날의 수' },
+    { emoji: '📈', value: avgPerDay, label: 'AVG/DAY', color: 'var(--green)', tip: '활동일 기준 하루 평균 커밋 수' },
+    { emoji: '🔥', value: maxStreak, label: 'MAX STREAK', color: 'var(--orange)', tip: '연속으로 커밋한 최장 일수. 매일 코딩!' },
+    { emoji: '🏆', value: bestDay[1], label: 'BEST DAY', color: 'var(--pink)', tip: bestDay[0] + ' — 하루 최다 커밋 기록' },
+    { emoji: '🗓️', value: daySpan + '일', label: 'SPAN', color: 'var(--cyan)', tip: '첫 커밋부터 마지막 커밋까지 총 경과 일수' },
+  ];
+
+  const el = document.getElementById('story-row');
+  stories.forEach(s => {
+    const card = document.createElement('div');
+    card.className = 'story-card';
+    card.innerHTML = `
+      <div class="bar" style="background:${s.color}"></div>
+      <span class="story-emoji">${s.emoji}</span>
+      <div class="story-value" style="color:${s.color}">${s.value}</div>
+      <div class="story-label">${s.label}</div>
+      <div class="story-tip">${s.tip}</div>
+    `;
+    el.appendChild(card);
+  });
+}
+
+function renderHeatmap() {
+  const el = document.getElementById('heatmap');
+  const dayCounts = {};
+  DATA.forEach(c => { dayCounts[c.d] = (dayCounts[c.d] || 0) + 1; });
+  const dates = Object.keys(dayCounts).sort();
+  const start = new Date(dates[0]);
+  const end = new Date(dates[dates.length - 1]);
+  const weekStart = new Date(start);
+  weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+
+  const d = new Date(weekStart);
+  while (d <= end) {
+    const ds = d.toISOString().slice(0, 10);
+    const count = dayCounts[ds] || 0;
+    const cell = document.createElement('div');
+    cell.className = 'hm-cell';
+    if (count >= 10) { cell.classList.add('hot'); cell.dataset.count = '5'; }
+    else if (count >= 6) cell.dataset.count = '5';
+    else if (count >= 4) cell.dataset.count = '4';
+    else if (count >= 3) cell.dataset.count = '3';
+    else if (count >= 2) cell.dataset.count = '2';
+    else if (count >= 1) cell.dataset.count = '1';
+    if (count > 0) cell.innerHTML = `<div class="tip">${ds}: ${count} commits</div>`;
+    el.appendChild(cell);
+    d.setDate(d.getDate() + 1);
+  }
+}
+
+function renderFunFacts() {
+  const el = document.getElementById('fun-facts');
+  const dayCounts = {};
+  DATA.forEach(c => { dayCounts[c.d] = (dayCounts[c.d] || 0) + 1; });
+  const bestDay = Object.entries(dayCounts).sort((a,b) => b[1] - a[1])[0];
+
+  const hourCounts = {};
+  DATA.forEach(c => { const h = parseInt(c.iso.slice(11,13)); hourCounts[h] = (hourCounts[h] || 0) + 1; });
+  const bestHour = Object.entries(hourCounts).sort((a,b) => b[1] - a[1])[0];
+
+  const lateNight = DATA.filter(c => { const h = parseInt(c.iso.slice(11,13)); return h >= 0 && h < 6; }).length;
+  const weekend = DATA.filter(c => { const d = new Date(c.d).getDay(); return d === 0 || d === 6; }).length;
+  const projCounts = {};
+  DATA.forEach(c => { projCounts[c.p] = (projCounts[c.p] || 0) + 1; });
+  const topProj = Object.entries(projCounts).sort((a,b) => b[1] - a[1])[0];
+
+  const facts = [
+    { emoji: '🏆', title: `역대 최고: ${bestDay[1]}개`, desc: `${bestDay[0]}에 폭풍 코딩` },
+    { emoji: '🌙', title: `새벽 코딩 ${lateNight}회`, desc: '0시~6시에도 멈추지 않는다' },
+    { emoji: '⏰', title: `피크 타임: ${bestHour[0]}시`, desc: `${bestHour[1]}개 커밋. 집중력 최고조` },
+    { emoji: '🎮', title: `주말에도 ${weekend}개`, desc: '쉬는 날에도 코드를 짠다' },
+    { emoji: '💜', title: `${topProj[0]}에 올인`, desc: `${topProj[1]}개 커밋으로 압도적 1위` },
+    { emoji: '🚀', title: `feat ${DATA.filter(c=>c.t==='feat').length}개`, desc: '새 기능을 가장 많이 만들었다' },
+  ];
+
+  facts.forEach(f => {
+    const card = document.createElement('div');
+    card.className = 'fun-card';
+    card.innerHTML = `<div class="fun-emoji">${f.emoji}</div><div><div class="fun-title">${f.title}</div><div class="fun-desc">${f.desc}</div></div>`;
+    el.appendChild(card);
+  });
+}
+
+function renderTypeChart() {
+  const el = document.getElementById('type-chart');
+  const counts = {};
+  DATA.forEach(c => { counts[c.t] = (counts[c.t] || 0) + 1; });
+  const sorted = Object.entries(counts).sort((a,b) => b[1] - a[1]);
+  const max = sorted[0][1];
+  const colors = { feat:'var(--green)', fix:'var(--blue)', docs:'var(--purple)', chore:'#636e72', test:'var(--orange)', refactor:'var(--pink)' };
+
+  sorted.forEach(([type, count]) => {
+    const row = document.createElement('div');
+    row.className = 'bar-row';
+    const pct = (count / max * 100).toFixed(0);
+    const bg = colors[type] || 'var(--text-dim)';
+    row.innerHTML = `
+      <div class="bar-label">${type.toUpperCase()}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${bg}">${count}</div></div>
+    `;
+    el.appendChild(row);
+  });
+}
+
+function renderProjChart() {
+  const el = document.getElementById('proj-chart');
+  const counts = {};
+  DATA.forEach(c => { counts[c.p] = (counts[c.p] || 0) + 1; });
+  const sorted = Object.entries(counts).sort((a,b) => b[1] - a[1]);
+  const colors = {
+    'sinsa-agency':'#7c5cfc','rigel-tax':'#ff6b4a','Template':'#2ecf7a',
+    'Template-v2':'#00c4b4','Template-v3':'#55efc4',
+    'admin-sinsa':'#4a9eff','kkachi-omuk':'#ffc107',
+    'ls-tax-next':'#636e72','home-dash':'#ff6b9d','dotfiles':'#999aaa'
+  };
+  const total = DATA.length;
+  let cum = 0;
+  const r = 65, cx = 80, cy = 80;
+  let paths = '';
+
+  sorted.forEach(([proj, count]) => {
+    const s = (cum / total) * 360 - 90;
+    const e = ((cum + count) / total) * 360 - 90;
+    const la = (e - s > 180) ? 1 : 0;
+    const x1 = cx + r * Math.cos(s * Math.PI / 180);
+    const y1 = cy + r * Math.sin(s * Math.PI / 180);
+    const x2 = cx + r * Math.cos(e * Math.PI / 180);
+    const y2 = cy + r * Math.sin(e * Math.PI / 180);
+    paths += `<path d="M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${la} 1 ${x2},${y2} Z" fill="${colors[proj]||'#ddd'}" opacity="0.85"/>`;
+    cum += count;
+  });
+
+  const svg = `<svg viewBox="0 0 160 160" width="160" height="160">${paths}<circle cx="${cx}" cy="${cy}" r="36" fill="var(--card)"/></svg>`;
+  let legend = '';
+  sorted.forEach(([proj, count]) => {
+    const pct = (count / total * 100).toFixed(1);
+    legend += `<div class="proj-legend-item"><div class="proj-dot" style="background:${colors[proj]||'#ddd'}"></div>${proj}<span class="proj-count">${count} (${pct}%)</span></div>`;
+  });
+
+  el.innerHTML = `<div class="donut-container">${svg}<div class="donut-center"><div class="num">${total}</div><div class="label">TOTAL</div></div></div><div class="proj-legend">${legend}</div>`;
+}
+
+function renderHourChart() {
+  const el = document.getElementById('hour-chart');
+  const labels = document.getElementById('hour-labels');
+  const counts = new Array(24).fill(0);
+  DATA.forEach(c => { counts[parseInt(c.iso.slice(11,13))]++; });
+  const max = Math.max(...counts);
+
+  for (let h = 0; h < 24; h++) {
+    const pct = max > 0 ? (counts[h] / max * 100) : 0;
+    const bar = document.createElement('div');
+    bar.className = 'hour-bar';
+    bar.style.height = Math.max(pct, 2) + '%';
+    if (counts[h] > 0) bar.style.background = `rgba(124,92,252,${0.15 + (counts[h]/max)*0.85})`;
+    bar.innerHTML = `<div class="h-tip">${h}시: ${counts[h]}개</div>`;
+    el.appendChild(bar);
+    const lbl = document.createElement('span');
+    lbl.textContent = h % 3 === 0 ? h : '';
+    labels.appendChild(lbl);
+  }
+}
+
+function renderWeekChart() {
+  const el = document.getElementById('week-chart');
+  const dayNames = ['일','월','화','수','목','금','토'];
+  const counts = new Array(7).fill(0);
+  DATA.forEach(c => { counts[new Date(c.d).getDay()]++; });
+  const max = Math.max(...counts);
+  const barColors = ['var(--pink)','var(--purple)','var(--purple)','var(--purple)','var(--purple)','var(--purple)','var(--green)'];
+
+  for (let d = 0; d < 7; d++) {
+    const pct = max > 0 ? (counts[d] / max * 100) : 0;
+    const group = document.createElement('div');
+    group.className = 'week-bar-group';
+    group.innerHTML = `<div class="week-count">${counts[d]}</div><div class="week-bar" style="height:${Math.max(pct, 3)}%;background:${barColors[d]}"></div><div class="week-label">${dayNames[d]}</div>`;
+    el.appendChild(group);
+  }
+}
+
+function renderTlControls() {
+  const el = document.getElementById('tl-controls');
+  ['all','feat','fix','docs','chore','test'].forEach(f => {
+    const btn = document.createElement('button');
+    btn.className = 'tl-btn' + (f === 'all' ? ' active' : '');
+    btn.textContent = f === 'all' ? 'ALL' : f.toUpperCase();
+    btn.addEventListener('click', () => {
+      el.querySelectorAll('.tl-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      tlFilter = f; tlPage = 0;
+      document.getElementById('timeline').innerHTML = '';
+      renderTimeline();
+    });
+    el.appendChild(btn);
+  });
+}
+
+function renderTimeline() {
+  const el = document.getElementById('timeline');
+  const filtered = tlFilter === 'all' ? DATA : DATA.filter(c => c.t === tlFilter);
+  const start = tlPage * TL_PAGE_SIZE;
+  const slice = filtered.slice(start, start + TL_PAGE_SIZE);
+
+  const projColors = {
+    'sinsa-agency':'#7c5cfc','rigel-tax':'#ff6b4a','Template':'#2ecf7a',
+    'Template-v2':'#00c4b4','Template-v3':'#55efc4',
+    'admin-sinsa':'#4a9eff','home-dash':'#ff6b9d','dotfiles':'#999aaa'
+  };
+
+  const grouped = {};
+  slice.forEach(c => { if (!grouped[c.d]) grouped[c.d] = []; grouped[c.d].push(c); });
+
+  Object.keys(grouped).sort((a,b) => b.localeCompare(a)).forEach(date => {
+    const day = document.createElement('div');
+    day.className = 'tl-day';
+    day.innerHTML = `<div class="tl-date">${date} <span class="count-badge">${grouped[date].length}</span></div>`;
+    grouped[date].forEach(c => {
+      const time = c.iso.slice(11, 16);
+      const item = document.createElement('div');
+      item.className = 'tl-item';
+      item.innerHTML = `
+        <span class="tl-tag ${c.t}">${c.t}</span>
+        <span class="tl-msg">${c.m}<span class="tl-proj" style="background:${projColors[c.p]||'#ddd'}15;color:${projColors[c.p]||'#666'}">${c.p}</span></span>
+        <span class="tl-time">${time}</span>
+      `;
+      day.appendChild(item);
+    });
+    el.appendChild(day);
+  });
+
+  document.getElementById('show-more').style.display = (start + TL_PAGE_SIZE >= filtered.length) ? 'none' : 'block';
+}
+
+document.getElementById('show-more').addEventListener('click', () => { tlPage++; renderTimeline(); });
+
+init();
+</script>
+</body>
+</html>
