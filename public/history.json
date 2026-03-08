@@ -1,5 +1,40 @@
 [
   {
+    "date": "2026-03-08",
+    "entries": [
+      {
+        "type": "change",
+        "title": "home.aurore.work Cloudflare Pages 전환",
+        "desc": "NAS Docker 호스팅 → Cloudflare Pages. Astro v5 프레임워크, GitHub Actions 자동 배포"
+      },
+      {
+        "type": "add",
+        "title": "날씨 페이지 전면 리뉴얼",
+        "desc": "Leaflet 지도 (라이트 테마), 일출/일몰 아크, 대기질, 하루 기온 곡선 차트, 분위기/옷차림/코딩 추천"
+      },
+      {
+        "type": "add",
+        "title": "예약 알림 페이지 신규",
+        "desc": "ntfy.sh 기반 푸시 알림 예약. 우선순위, 반복(매일/평일/매주/매달/매년), 이모지 태그"
+      },
+      {
+        "type": "add",
+        "title": "배포 알림 자동화",
+        "desc": "GitHub Actions 배포 시작/성공/실패를 ntfy 푸시로 자동 발송"
+      },
+      {
+        "type": "add",
+        "title": "전체 페이지 애니 효과",
+        "desc": "시간대별 테마(아침/오후/저녁/밤), 스파클 클릭, 플로팅 파티클, BGM 칩튠 플레이어"
+      },
+      {
+        "type": "fix",
+        "title": "통계·예약·날씨 버그 수정",
+        "desc": "통계 JSON 경로 수정, ntfy 한글 전송 에러 해결(JSON body), 일본어 잔존 전부 한국어로"
+      }
+    ]
+  },
+  {
     "date": "2026-03-06",
     "entries": [
       {

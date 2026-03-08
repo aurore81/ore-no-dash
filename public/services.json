@@ -75,8 +75,8 @@
     "name": "Home",
     "domain": "home.aurore.work",
     "icon": "🏠",
-    "description": "이 페이지 — 서비스 현황판 + 작업 히스토리",
-    "route": "NAS nginx → home-dash Docker :80",
+    "description": "대시보드 — 서비스 현황, 히스토리, 날씨, 통계, 예약 알림",
+    "route": "Cloudflare Pages (Astro v5, GitHub Actions 자동 배포)",
     "category": "infra"
   },
   {
