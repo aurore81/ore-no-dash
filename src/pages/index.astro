@@ -4,9 +4,9 @@ import Base from '../layouts/Base.astro';
 
 <Base title="홈" active="home">
   <!-- JoJo menacing -->
-  <div class="menacing" style="right:5%;top:15%">ゴゴゴ</div>
-  <div class="menacing" style="left:3%;top:40%">ドドド</div>
-  <div class="menacing" style="right:8%;bottom:25%">ゴゴゴ</div>
+  <div class="menacing" style="right:5%;top:15%">✦✦✦</div>
+  <div class="menacing" style="left:3%;top:40%">⚡⚡⚡</div>
+  <div class="menacing" style="right:8%;bottom:25%">✦✦✦</div>
 
   <!-- Speed lines -->
   <div class="speed-lines" id="speed-lines"></div>
@@ -27,7 +27,7 @@ import Base from '../layouts/Base.astro';
       <div class="mascot-ear left"></div>
       <div class="mascot-ear right"></div>
     </div>
-    <div class="mascot-speech" id="mascot-speech">ようこそ！✨</div>
+    <div class="mascot-speech" id="mascot-speech">어서와요! ✨</div>
   </div>
 
   <!-- Combo counter -->
@@ -372,15 +372,15 @@ import Base from '../layouts/Base.astro';
 
 <script>
   // --- Anime SFX & Reactions ---
-  const sfxList = ['ドン！', 'バーン！', 'キター！', 'ズバッ！', 'ワクワク', 'スゴイ！', 'ヨシ！', 'イクゾ！', 'ナイス！'];
+  const sfxList = ['펑!', '빵!', '왔다!', '슉!', '두근두근', '대박!', '좋아!', '가자!', '나이스!'];
   const reactions = ['(≧▽≦)', '(ﾉ◕ヮ◕)ﾉ✧', '(☆▽☆)', 'ヽ(>∀<☆)ノ', '(*≧ω≦)', '(ノ´ヮ`)ノ*:・゚✧', '٩(◕‿◕｡)۶'];
 
   // --- Greeting ---
   const greetings: Record<string, string[]> = {
-    morning: ['좋은 아침이에요! おはよう～☀️', '오늘도 화이팅! ファイト！💪', '커피 한 잔 어때요? ☕ いただきます！'],
-    afternoon: ['좋은 오후에요! こんにちは～🌤️', '점심은 드셨나요? 🍱 もぐもぐ', '오후도 파이팅! がんばれ！✨'],
-    evening: ['좋은 저녁이에요! こんばんは～🌙', '오늘 하루 수고했어요! お疲れ様！💜', '맛있는 저녁 드세요! 🍽️ うまい！'],
-    night: ['아직 안 자요? まだ起きてる？🦉', '푹 자요～ おやすみ！🌙', '오늘도 수고했어요! お疲れ様でした！💤'],
+    morning: ['좋은 아침이에요! ☀️', '오늘도 화이팅! 💪', '커피 한 잔 어때요? ☕'],
+    afternoon: ['좋은 오후에요! 🌤️', '점심은 드셨나요? 🍱', '오후도 파이팅! ✨'],
+    evening: ['좋은 저녁이에요! 🌙', '오늘 하루 수고했어요! 💜', '맛있는 저녁 드세요! 🍽️'],
+    night: ['아직 안 자요? 🦉', '푹 자요~ 🌙', '오늘도 수고했어요! 💤'],
   };
   const h = new Date().getHours();
   const period = h >= 6 && h < 12 ? 'morning' : h < 18 ? 'afternoon' : h < 23 ? 'evening' : 'night';
@@ -695,10 +695,10 @@ import Base from '../layouts/Base.astro';
   const mascotSpeech = document.getElementById('mascot-speech');
   const mascot = document.getElementById('mascot');
   const mascotLines: Record<string, string[]> = {
-    morning: ['おはよう！今日も頑張ろう！✨', 'いい朝だね～☀️', 'コーヒー飲んだ？☕'],
-    afternoon: ['こんにちは！調子どう？🌤️', 'ランチ食べた？🍱', 'ファイト！がんばれ！💪'],
-    evening: ['こんばんは～お疲れ様！💜', '今日もよく頑張った！🌙', '晩ごはんは何？🍽️'],
-    night: ['まだ起きてるの？😮', 'そろそろ寝なよ～💤', '夜更かしはダメだよ！🦉'],
+    morning: ['좋은 아침! 오늘도 힘내자! ✨', '날씨 좋다~ ☀️', '커피 마셨어? ☕'],
+    afternoon: ['안녕! 잘 되고 있어? 🌤️', '점심 먹었어? 🍱', '힘내! 파이팅! 💪'],
+    evening: ['저녁이다~ 수고했어! 💜', '오늘도 잘했어! 🌙', '저녁은 뭐 먹어? 🍽️'],
+    night: ['아직 안 자? 😮', '얼른 자~ 💤', '밤샘은 안돼! 🦉'],
   };
   const lines = mascotLines[period] || mascotLines.night;
   let lineIdx = 0;

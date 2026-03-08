@@ -18,14 +18,14 @@ import Base from '../layouts/Base.astro';
   <div id="content">
     <div class="text-center py-16">
       <div class="text-7xl mb-4 weather-loading-icon">🌀</div>
-      <p class="text-lg font-bold text-dim">てんきデータ読み込み中... ✨</p>
+      <p class="text-lg font-bold text-dim">날씨 데이터 불러오는 중... ✨</p>
       <div class="loading-bar"><div class="loading-bar-inner"></div></div>
     </div>
   </div>
 
   <!-- Footer -->
   <footer class="text-center py-4 text-xs text-dim mt-8 font-mono">
-    aurore.work // Weather API — データ提供 ☁️
+    aurore.work // Weather API ☁️
   </footer>
 </Base>
 
@@ -278,11 +278,11 @@ import Base from '../layouts/Base.astro';
 
   // --- AQI levels ---
   const aqiLevels = [
-    { label: '좋음', emoji: '😊', colorClass: 'text-green', bgClass: 'bg-green/10', barColor: '#34d399', comment: 'そとであそべる！マスク不要 ✨' },
-    { label: '보통', emoji: '🙂', colorClass: 'text-blue', bgClass: 'bg-blue/10', barColor: '#60a5fa', comment: 'まぁまぁ。敏感な人は注意 🌤️' },
-    { label: '나쁨', emoji: '😷', colorClass: 'text-orange', bgClass: 'bg-orange/10', barColor: '#fb923c', comment: 'マスク装備！外出注意 ⚠️' },
-    { label: '매우 나쁨', emoji: '🤮', colorClass: 'text-red', bgClass: 'bg-red/10', barColor: '#f87171', comment: '外出自制！おうちでゆっくり 🏠' },
-    { label: '위험', emoji: '☠️', colorClass: 'text-purple', bgClass: 'bg-purple/10', barColor: '#a78bfa', comment: '絶対外に出るな！！☠️' },
+    { label: '좋음', emoji: '😊', colorClass: 'text-green', bgClass: 'bg-green/10', barColor: '#34d399', comment: '밖에서 놀아도 돼! 마스크 불필요 ✨' },
+    { label: '보통', emoji: '🙂', colorClass: 'text-blue', bgClass: 'bg-blue/10', barColor: '#60a5fa', comment: '대체로 괜찮아. 민감한 사람은 주의 🌤️' },
+    { label: '나쁨', emoji: '😷', colorClass: 'text-orange', bgClass: 'bg-orange/10', barColor: '#fb923c', comment: '마스크 필수! 외출 주의 ⚠️' },
+    { label: '매우 나쁨', emoji: '🤮', colorClass: 'text-red', bgClass: 'bg-red/10', barColor: '#f87171', comment: '외출 자제! 집에서 쉬자 🏠' },
+    { label: '위험', emoji: '☠️', colorClass: 'text-purple', bgClass: 'bg-purple/10', barColor: '#a78bfa', comment: '절대 밖에 나가지 마!! ☠️' },
   ];
 
   // --- 3-tier location ---
@@ -303,7 +303,7 @@ import Base from '../layouts/Base.astro';
         if (data.lat && data.lon) return { lat: data.lat, lon: data.lon, source: 'ip', label: `IP (${data.city || data.regionName || '不明'})` };
       }
     } catch {}
-    return { lat: 37.5665, lon: 126.978, source: 'fallback', label: 'ソウル (デフォルト)' };
+    return { lat: 37.5665, lon: 126.978, source: 'fallback', label: '서울 (기본)' };
   }
 
   // --- Helpers ---
@@ -440,8 +440,8 @@ import Base from '../layouts/Base.astro';
     content.innerHTML = `
       <!-- ===== CURRENT WEATHER ===== -->
       <div class="bg-card border-2 border-border rounded-2xl p-8 mb-6 relative overflow-hidden">
-        <div class="weather-sfx" style="top:10px;right:15px;font-size:1.2rem;animation-delay:0s">てんき！</div>
-        <div class="weather-sfx" style="bottom:10px;left:15px;font-size:1rem;animation-delay:1.5s">スゴイ</div>
+        <div class="weather-sfx" style="top:10px;right:15px;font-size:1.2rem;animation-delay:0s">날씨!</div>
+        <div class="weather-sfx" style="bottom:10px;left:15px;font-size:1rem;animation-delay:1.5s">대박</div>
 
         <div class="flex flex-col items-center gap-4 relative z-1">
           <div class="text-8xl weather-emoji-big">${emoji}</div>
@@ -474,7 +474,7 @@ import Base from '../layouts/Base.astro';
       <!-- ===== SUNRISE / SUNSET ARC ===== -->
       ${cur.sunrise && cur.sunset ? `
       <div class="bg-card border-2 border-border rounded-2xl p-6 mb-6 relative overflow-hidden">
-        <h3 class="text-center text-sm font-extrabold text-sub mb-2 relative z-1">🌅 日の出 · 日の入り</h3>
+        <h3 class="text-center text-sm font-extrabold text-sub mb-2 relative z-1">🌅 일출 · 일몰</h3>
         <div class="sun-arc-container">
           <div class="sun-arc-path"></div>
           <div class="horizon-line"></div>
@@ -534,7 +534,7 @@ import Base from '../layouts/Base.astro';
         <div class="vibe-card bg-card border border-purple/20 rounded-2xl p-5 text-center" style="animation-delay:0.3s">
           <div class="relative z-1">
             <div class="text-3xl mb-2">${vibe.emoji || '🎭'}</div>
-            <div class="text-sm font-extrabold text-purple mb-1">バイブ</div>
+            <div class="text-sm font-extrabold text-purple mb-1">분위기</div>
             <div class="text-lg font-black text-text">${vibe.ko || vibe.label || '분위기'}</div>
             <div class="text-xs text-dim mt-1">${vibe.description || ''}</div>
           </div>
@@ -544,7 +544,7 @@ import Base from '../layouts/Base.astro';
         <div class="vibe-card bg-card border border-cyan/20 rounded-2xl p-5 text-center" style="animation-delay:0.5s">
           <div class="relative z-1">
             <div class="text-3xl mb-2">${outfit.emoji || '👔'}</div>
-            <div class="text-sm font-extrabold text-cyan mb-1">コーデ</div>
+            <div class="text-sm font-extrabold text-cyan mb-1">옷차림</div>
             <div class="text-lg font-black text-text">${outfit.ko || outfit.label || '옷차림'}</div>
             <div class="text-xs text-dim mt-1">${outfit.description || ''}</div>
           </div>
@@ -554,7 +554,7 @@ import Base from '../layouts/Base.astro';
         <div class="vibe-card bg-card border border-green/20 rounded-2xl p-5 text-center" style="animation-delay:0.7s">
           <div class="relative z-1">
             <div class="text-3xl mb-2">${coding.emoji || '💻'}</div>
-            <div class="text-sm font-extrabold text-green mb-1">コーディング</div>
+            <div class="text-sm font-extrabold text-green mb-1">코딩</div>
             <div class="text-lg font-black text-text">${coding.ko || coding.label || '코딩'}</div>
             <div class="text-xs text-dim mt-1">${coding.recommendation || coding.description || ''}</div>
           </div>
@@ -565,8 +565,8 @@ import Base from '../layouts/Base.astro';
 
       <!-- ===== AIR QUALITY ===== -->
       <div class="bg-card border-2 border-border rounded-2xl p-6 mb-6 text-center relative overflow-hidden">
-        <div class="weather-sfx" style="top:5px;right:10px;font-size:0.9rem;animation-delay:0.5s">キレイ</div>
-        <h3 class="section-header text-lg font-extrabold text-sub mb-5">🌬️ 大気質 (대기질)</h3>
+        <div class="weather-sfx" style="top:5px;right:10px;font-size:0.9rem;animation-delay:0.5s">깨끗</div>
+        <h3 class="section-header text-lg font-extrabold text-sub mb-5">🌬️ 대기질</h3>
         <div class="inline-flex items-center gap-4 px-8 py-5 rounded-2xl ${aqi.bgClass} relative z-1">
           <span class="text-6xl weather-emoji-big" style="animation-duration:2s">${aqi.emoji}</span>
           <div class="text-left">
@@ -596,7 +596,7 @@ import Base from '../layouts/Base.astro';
       <div class="bg-card border-2 ${ws.allGood ? 'border-pink/30' : 'border-blue/30'} rounded-2xl p-6 mb-6 text-center vibe-card" style="animation-delay:0.6s">
         <div class="relative z-1">
           <div class="text-5xl mb-3 weather-emoji-big">${ws.allGood ? '🎉' : '🌂'}</div>
-          <h3 class="text-2xl font-black text-pink mb-3">🗓️ 週末はどう？</h3>
+          <h3 class="text-2xl font-black text-pink mb-3">🗓️ 이번 주말은?</h3>
           <div class="grid grid-cols-2 gap-4 mb-4">
             ${ws.days?.map((d: any) => `
               <div class="bg-bg rounded-xl p-4">
@@ -616,7 +616,7 @@ import Base from '../layouts/Base.astro';
       ` : ''}
 
       <!-- ===== 5-DAY FORECAST ===== -->
-      <h3 class="section-header text-2xl font-black mb-5 text-text">📅 5日予報</h3>
+      <h3 class="section-header text-2xl font-black mb-5 text-text">📅 5일 예보</h3>
       <div class="grid grid-cols-3 sm:grid-cols-5 gap-3 mb-8">
         ${forecast.map((d: any, i: number) => `
           <div class="forecast-card bg-card border-2 ${d.isWeekend ? 'border-pink/40' : 'border-border'} rounded-2xl p-4 text-center" style="animation-delay:${i * 0.1}s">
@@ -661,9 +661,9 @@ import Base from '../layouts/Base.astro';
       <div class="bg-card border-2 border-border rounded-2xl p-8 text-center vibe-card">
         <div class="relative z-1">
           <div class="text-6xl mb-4 weather-emoji-big">😵</div>
-          <div class="text-xl font-black text-sub mb-2">エラー発生！</div>
+          <div class="text-xl font-black text-sub mb-2">에러 발생!</div>
           <div class="text-sm text-dim font-bold">${msg}</div>
-          <div class="text-xs font-mono text-dim mt-2">しばらくしてからもう一度... 🙏</div>
+          <div class="text-xs font-mono text-dim mt-2">잠시 후 다시 시도해주세요 🙏</div>
         </div>
       </div>
     `;

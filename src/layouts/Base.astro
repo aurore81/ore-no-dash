@@ -3,7 +3,7 @@ import '../styles/global.css';
 
 interface Props {
   title: string;
-  active?: 'home' | 'weather' | 'work' | 'stats';
+  active?: 'home' | 'weather' | 'work' | 'stats' | 'schedule';
 }
 
 const { title, active = 'home' } = Astro.props;
@@ -13,6 +13,7 @@ const nav = [
   { href: '/weather', label: '🌤️ 날씨', id: 'weather' },
   { href: '/work', label: '💼 업무', id: 'work' },
   { href: '/stats', label: '📊 통계', id: 'stats' },
+  { href: '/schedule', label: '⏰ 예약', id: 'schedule' },
 ] as const;
 ---
 
