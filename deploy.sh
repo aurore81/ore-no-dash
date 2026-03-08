@@ -9,6 +9,8 @@ cd "$PROJECT_DIR"
 
 ACCOUNT_ID="2e5c5e7f6c488572fe1c2e899e3e4fa2"
 PROJECT_NAME="ore-no-dash"
+NTFY_TOPIC="aurore-deploy-af55e122"
+SITE_URL="https://home.aurore.work"
 
 echo "📊 배포 통계 수집 중..."
 DEPLOY_DATA=$(curl -s "https://api.cloudflare.com/client/v4/accounts/$ACCOUNT_ID/pages/projects/$PROJECT_NAME/deployments?per_page=1" \
@@ -26,10 +28,43 @@ cat > public/deploy-stats.json <<STATS
 STATS
 echo "  배포 #$TOTAL"
 
+# 최근 커밋 메시지
+COMMIT_MSG=$(git log -1 --pretty=%s 2>/dev/null || echo "수동 배포")
+
 echo "🔨 빌드 중..."
 npm run build
 
 echo "🚀 Cloudflare Pages 배포 중..."
-npx wrangler pages deploy dist --project-name "$PROJECT_NAME" --commit-dirty=true --commit-message "Deploy #$TOTAL $(date '+%Y-%m-%d %H:%M')"
+if npx wrangler pages deploy dist --project-name "$PROJECT_NAME" --commit-dirty=true --commit-message "Deploy #$TOTAL $(date '+%Y-%m-%d %H:%M')"; then
+  echo "✅ 배포 완료! (#$TOTAL) $SITE_URL"
 
-echo "✅ 배포 완료! (#$TOTAL) https://home.aurore.work"
+  # 성공 알림
+  curl -s \
+    -H "Title: 🚀 수동 배포 완료! #$TOTAL" \
+    -H "Priority: default" \
+    -H "Tags: rocket,white_check_mark" \
+    -H "Click: $SITE_URL" \
+    -H "Actions: view, 사이트 열기, $SITE_URL" \
+    -d "✅ ore-no-dash 수동 배포 성공!
+
+📝 $COMMIT_MSG
+🔢 배포 #$TOTAL
+⏰ $(date '+%m/%d %H:%M')
+🌐 $SITE_URL" \
+    "https://ntfy.sh/$NTFY_TOPIC" >/dev/null 2>&1 &
+else
+  echo "❌ 배포 실패!"
+
+  # 실패 알림
+  curl -s \
+    -H "Title: ❌ 수동 배포 실패! ore-no-dash" \
+    -H "Priority: high" \
+    -H "Tags: x,warning" \
+    -d "❌ ore-no-dash 수동 배포 실패!
+
+📝 $COMMIT_MSG
+⏰ $(date '+%m/%d %H:%M')" \
+    "https://ntfy.sh/$NTFY_TOPIC" >/dev/null 2>&1 &
+
+  exit 1
+fi

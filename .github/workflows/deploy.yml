@@ -29,6 +29,7 @@ jobs:
             -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" | jq -r '.result_info.total_count // 0')
           TOTAL=$((TOTAL + 1))
           echo "{\"total\":$TOTAL,\"lastDeployedAt\":\"$(date -u '+%Y-%m-%dT%H:%M:%SZ')\",\"lastStatus\":\"success\",\"project\":\"ore-no-dash\"}" > public/deploy-stats.json
+          echo "DEPLOY_NUM=$TOTAL" >> $GITHUB_ENV
           echo "Deploy #$TOTAL"
 
       - run: npm run build
@@ -38,3 +39,38 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy dist --project-name ore-no-dash --commit-dirty=true --commit-message "Deploy #${{ github.run_number }} ${{ github.event.head_commit.message }}"
+
+      - name: Push notification (success)
+        if: success()
+        run: |
+          COMMIT_MSG=$(echo "${{ github.event.head_commit.message }}" | head -1)
+          curl -s \
+            -H "Title: 🚀 배포 완료! #${{ env.DEPLOY_NUM }}" \
+            -H "Priority: default" \
+            -H "Tags: rocket,white_check_mark" \
+            -H "Click: https://home.aurore.work" \
+            -H "Actions: view, 사이트 열기, https://home.aurore.work; view, GitHub, https://github.com/aurore81/ore-no-dash/actions/runs/${{ github.run_id }}" \
+            -d "✅ ore-no-dash 배포 성공!
+
+📝 ${COMMIT_MSG}
+🔢 배포 #${{ env.DEPLOY_NUM }}
+⏰ $(TZ=Asia/Seoul date '+%m/%d %H:%M')
+🌐 https://home.aurore.work" \
+            https://ntfy.sh/aurore-deploy-af55e122
+
+      - name: Push notification (failure)
+        if: failure()
+        run: |
+          COMMIT_MSG=$(echo "${{ github.event.head_commit.message }}" | head -1)
+          curl -s \
+            -H "Title: ❌ 배포 실패! ore-no-dash" \
+            -H "Priority: high" \
+            -H "Tags: x,warning" \
+            -H "Click: https://github.com/aurore81/ore-no-dash/actions/runs/${{ github.run_id }}" \
+            -H "Actions: view, 로그 확인, https://github.com/aurore81/ore-no-dash/actions/runs/${{ github.run_id }}" \
+            -d "❌ ore-no-dash 배포 실패!
+
+📝 ${COMMIT_MSG}
+⏰ $(TZ=Asia/Seoul date '+%m/%d %H:%M')
+🔗 로그: https://github.com/aurore81/ore-no-dash/actions/runs/${{ github.run_id }}" \
+            https://ntfy.sh/aurore-deploy-af55e122
