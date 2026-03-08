@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
 
+env:
+  NTFY_TOPIC: aurore-deploy-af55e122
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -12,6 +15,11 @@ jobs:
       deployments: write
     steps:
       - uses: actions/checkout@v4
+
+      - name: Notify deploy start
+        run: |
+          MSG=$(git log -1 --pretty=%s)
+          curl -s -H "Title: 🏗️ 배포 시작" -H "Tags: construction" -H "Priority: low" -d "ore-no-dash 배포 시작! - ${MSG}" https://ntfy.sh/$NTFY_TOPIC || true
 
       - uses: actions/setup-node@v4
         with:
@@ -30,7 +38,6 @@ jobs:
           TOTAL=$((TOTAL + 1))
           echo "{\"total\":$TOTAL,\"lastDeployedAt\":\"$(date -u '+%Y-%m-%dT%H:%M:%SZ')\",\"lastStatus\":\"success\",\"project\":\"ore-no-dash\"}" > public/deploy-stats.json
           echo "DEPLOY_NUM=$TOTAL" >> $GITHUB_ENV
-          echo "Deploy #$TOTAL"
 
       - run: npm run build
 
@@ -38,39 +45,30 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name ore-no-dash --commit-dirty=true --commit-message "Deploy #${{ github.run_number }} ${{ github.event.head_commit.message }}"
+          command: pages deploy dist --project-name ore-no-dash --commit-dirty=true --commit-message "Deploy from GitHub Actions"
 
-      - name: Push notification (success)
+      - name: Notify deploy success
         if: success()
         run: |
-          COMMIT_MSG=$(echo "${{ github.event.head_commit.message }}" | head -1)
+          MSG=$(git log -1 --pretty=%s)
           curl -s \
-            -H "Title: 🚀 배포 완료! #${{ env.DEPLOY_NUM }}" \
+            -H "Title: ✅ 배포 완료 #$DEPLOY_NUM" \
+            -H "Tags: white_check_mark,rocket" \
             -H "Priority: default" \
-            -H "Tags: rocket,white_check_mark" \
             -H "Click: https://home.aurore.work" \
-            -H "Actions: view, 사이트 열기, https://home.aurore.work; view, GitHub, https://github.com/aurore81/ore-no-dash/actions/runs/${{ github.run_id }}" \
-            -d "✅ ore-no-dash 배포 성공!
+            -H "Actions: view, Open Site, https://home.aurore.work" \
+            -d "배포 성공! ${MSG} - https://home.aurore.work" \
+            https://ntfy.sh/$NTFY_TOPIC || true
 
-📝 ${COMMIT_MSG}
-🔢 배포 #${{ env.DEPLOY_NUM }}
-⏰ $(TZ=Asia/Seoul date '+%m/%d %H:%M')
-🌐 https://home.aurore.work" \
-            https://ntfy.sh/aurore-deploy-af55e122
-
-      - name: Push notification (failure)
+      - name: Notify deploy failure
         if: failure()
         run: |
-          COMMIT_MSG=$(echo "${{ github.event.head_commit.message }}" | head -1)
+          MSG=$(git log -1 --pretty=%s)
           curl -s \
-            -H "Title: ❌ 배포 실패! ore-no-dash" \
-            -H "Priority: high" \
+            -H "Title: ❌ 배포 실패!" \
             -H "Tags: x,warning" \
+            -H "Priority: high" \
             -H "Click: https://github.com/aurore81/ore-no-dash/actions/runs/${{ github.run_id }}" \
-            -H "Actions: view, 로그 확인, https://github.com/aurore81/ore-no-dash/actions/runs/${{ github.run_id }}" \
-            -d "❌ ore-no-dash 배포 실패!
-
-📝 ${COMMIT_MSG}
-⏰ $(TZ=Asia/Seoul date '+%m/%d %H:%M')
-🔗 로그: https://github.com/aurore81/ore-no-dash/actions/runs/${{ github.run_id }}" \
-            https://ntfy.sh/aurore-deploy-af55e122
+            -H "Actions: view, View Log, https://github.com/aurore81/ore-no-dash/actions/runs/${{ github.run_id }}" \
+            -d "배포 실패! ${MSG}" \
+            https://ntfy.sh/$NTFY_TOPIC || true
