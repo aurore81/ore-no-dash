@@ -5,7 +5,7 @@ import Base from '../layouts/Base.astro';
 <Base title="날씨" active="weather">
   <!-- Location with mini map -->
   <div class="rounded-2xl overflow-hidden mb-5 relative border border-border">
-    <div id="map" style="height:160px;width:100%;z-index:1"></div>
+    <div id="map" style="height:140px;width:100%;z-index:1"></div>
     <div class="absolute bottom-3 left-3 z-10 bg-bg/90 backdrop-blur-md rounded-lg px-3 py-1.5 border border-border">
       <span class="text-xs font-bold text-accent" id="nav-loc">📍 위치 확인 중...</span>
     </div>
@@ -33,15 +33,15 @@ import Base from '../layouts/Base.astro';
   .loading-slide { width:40%; animation: slide 1.5s ease-in-out infinite; }
   @keyframes slide { 0%{transform:translateX(-100%)} 100%{transform:translateX(350%)} }
 
-  /* Big temp */
+  /* Hero temp — 대형 + 그라데이션 */
   .hero-temp {
-    font-size: 6rem; font-weight: 900; line-height: 1;
-    background: linear-gradient(135deg, var(--color-text) 40%, var(--color-gold));
+    font-size: 7rem; font-weight: 900; line-height: 1; letter-spacing: -0.04em;
+    background: linear-gradient(135deg, var(--color-text) 30%, var(--color-gold) 70%, var(--color-orange));
     -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
   }
-  @media (min-width: 640px) { .hero-temp { font-size: 8rem; } }
+  @media (min-width: 640px) { .hero-temp { font-size: 10rem; } }
 
-  /* Weather icon bounce */
+  /* Weather icon float */
   .w-bounce { animation: w-bounce 3s ease-in-out infinite; display:inline-block; }
   @keyframes w-bounce { 0%,100%{transform:translateY(0) rotate(0)} 50%{transform:translateY(-12px) rotate(5deg)} }
 
@@ -49,29 +49,40 @@ import Base from '../layouts/Base.astro';
   .m-card { transition: all 0.3s; }
   .m-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
 
+  /* AQI 대형 카드 */
+  .aqi-hero { position: relative; overflow: hidden; }
+  .aqi-hero::before {
+    content: ''; position: absolute; inset: 0; opacity: 0.06;
+    background: radial-gradient(ellipse at 30% 50%, currentColor, transparent 70%);
+  }
+  .aqi-big-num { font-size: 4rem; font-weight: 900; line-height: 1; letter-spacing: -0.03em; }
+  @media (min-width: 640px) { .aqi-big-num { font-size: 5rem; } }
+  .aqi-bar-thick { width:0; height:8px; border-radius:4px; transition: width 1.5s cubic-bezier(0.34,1.56,0.64,1); }
+  .aqi-label-big { font-size: 1.5rem; font-weight: 900; }
+
   /* Sun arc */
-  .sun-arc { position:relative; height:140px; max-width:380px; margin:0 auto; overflow:hidden; }
-  .sun-arc-track { position:absolute; bottom:0; left:8%; right:8%; height:120px; border:2px dashed var(--color-border); border-bottom:none; border-radius:50% 50% 0 0; }
+  .sun-arc { position:relative; height:150px; max-width:400px; margin:0 auto; overflow:hidden; }
+  .sun-arc-track { position:absolute; bottom:0; left:8%; right:8%; height:130px; border:2.5px dashed var(--color-border); border-bottom:none; border-radius:50% 50% 0 0; }
   .sun-arc-horizon { position:absolute; bottom:0; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,var(--color-orange),transparent); }
-  .sun-icon { position:absolute; font-size:2.5rem; filter:drop-shadow(0 0 12px rgba(255,200,0,0.4)); animation:sun-glow 2s ease-in-out infinite; }
-  @keyframes sun-glow { 0%,100%{transform:translate(-50%,-50%) scale(1)} 50%{transform:translate(-50%,-50%) scale(1.12)} }
-  .sun-time { position:absolute; bottom:0; font-size:0.7rem; font-weight:800; color:var(--color-sub); text-align:center; }
+  .sun-icon { position:absolute; font-size:2.5rem; filter:drop-shadow(0 0 16px rgba(255,200,0,0.5)); animation:sun-glow 2s ease-in-out infinite; }
+  @keyframes sun-glow { 0%,100%{transform:translate(-50%,-50%) scale(1)} 50%{transform:translate(-50%,-50%) scale(1.15)} }
+  .sun-time { position:absolute; bottom:0; font-size:0.75rem; font-weight:800; color:var(--color-sub); }
 
   /* Temp curve */
-  .curve-svg { width:100%; height:180px; }
+  .curve-svg { width:100%; height:200px; }
   .now-dot { animation: dot-pulse 2s ease-in-out infinite; }
-  @keyframes dot-pulse { 0%,100%{r:5;opacity:1} 50%{r:8;opacity:0.7} }
+  @keyframes dot-pulse { 0%,100%{r:6;opacity:1} 50%{r:10;opacity:0.7} }
   .now-line { animation: line-fade 2s ease-in-out infinite; }
   @keyframes line-fade { 0%,100%{opacity:0.5} 50%{opacity:0.2} }
-
-  /* AQI bar */
-  .aqi-bar { width:0; transition: width 1.5s cubic-bezier(0.34,1.56,0.64,1); }
 
   /* Forecast */
   .fc-card { transition: all 0.3s; }
   .fc-card:hover { transform: translateY(-6px) scale(1.04); box-shadow: 0 12px 24px rgba(0,0,0,0.2); border-color: var(--color-gold) !important; }
   .fc-card:hover .fc-emoji { animation: fc-pop 0.4s ease; }
   @keyframes fc-pop { 0%{transform:scale(1)} 40%{transform:scale(1.3) rotate(10deg)} 100%{transform:scale(1.1)} }
+
+  /* Section header */
+  .sec-title { font-size: 1.1rem; font-weight: 900; letter-spacing: -0.02em; }
 
   /* Map */
   .leaflet-container { background: var(--color-bg) !important; border-radius: 1rem; }
@@ -93,11 +104,11 @@ import Base from '../layouts/Base.astro';
   };
 
   const aqiLevels = [
-    { label:'좋음', emoji:'😊', color:'text-green', bg:'bg-green/10', comment:'공기 좋아! 마스크 불필요 ✨' },
-    { label:'보통', emoji:'🙂', color:'text-blue', bg:'bg-blue/10', comment:'대체로 괜찮아. 민감하면 주의' },
-    { label:'나쁨', emoji:'😷', color:'text-orange', bg:'bg-orange/10', comment:'마스크 챙기세요 ⚠️' },
-    { label:'매우 나쁨', emoji:'🤮', color:'text-red', bg:'bg-red/10', comment:'외출 자제! 🏠' },
-    { label:'위험', emoji:'☠️', color:'text-purple', bg:'bg-purple/10', comment:'절대 밖에 나가지 마세요' },
+    { label:'좋음', emoji:'😊', color:'text-green', bg:'bg-green/15', border:'border-green/30', accent:'var(--color-green)' },
+    { label:'보통', emoji:'🙂', color:'text-blue', bg:'bg-blue/15', border:'border-blue/30', accent:'var(--color-blue)' },
+    { label:'나쁨', emoji:'😷', color:'text-orange', bg:'bg-orange/15', border:'border-orange/30', accent:'var(--color-orange)' },
+    { label:'매우 나쁨', emoji:'🤮', color:'text-red', bg:'bg-red/15', border:'border-red/30', accent:'var(--color-red)' },
+    { label:'위험', emoji:'☠️', color:'text-purple', bg:'bg-purple/15', border:'border-purple/30', accent:'var(--color-purple)' },
   ];
 
   const dayNames = ['일','월','화','수','목','금','토'];
@@ -188,21 +199,21 @@ import Base from '../layouts/Base.astro';
       const dayM = Math.round((dayLen%3600000)/60000);
 
       sunHtml = `
-        <div class="bg-card border border-border rounded-2xl p-5 mb-5">
-          <div class="flex items-center justify-between mb-3">
-            <h3 class="text-sm font-black text-sub">🌅 일출 · 일몰</h3>
-            <span class="text-xs font-bold text-dim">${isDay ? `☀️ 낮 ${dayH}시간 ${dayM}분` : '🌙 밤'}</span>
+        <div class="bg-card border border-border rounded-2xl p-5 sm:p-6 mb-5">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="sec-title text-sub">🌅 일출 · 일몰</h3>
+            <span class="text-sm font-bold text-dim">${isDay ? `☀️ 낮 ${dayH}시간 ${dayM}분` : '🌙 밤'}</span>
           </div>
           <div class="sun-arc">
             <div class="sun-arc-track"></div>
             <div class="sun-arc-horizon"></div>
             <div class="sun-icon" style="left:${sx}%;top:${sy}%">${isDay?'☀️':(pos>=1?'🌙':'🌅')}</div>
-            <div class="sun-time" style="left:5%"><div class="text-xl mb-0.5">🌅</div>${fmtTime(cur.sunrise)}</div>
-            <div class="sun-time" style="right:5%;text-align:right"><div class="text-xl mb-0.5">🌇</div>${fmtTime(cur.sunset)}</div>
+            <div class="sun-time" style="left:5%"><div class="text-2xl mb-0.5">🌅</div>${fmtTime(cur.sunrise)}</div>
+            <div class="sun-time" style="right:5%;text-align:right"><div class="text-2xl mb-0.5">🌇</div>${fmtTime(cur.sunset)}</div>
           </div>
-          <div class="flex justify-center gap-4 mt-3">
-            <span class="text-xs font-bold px-3 py-1 rounded-full bg-orange/10 text-orange">🌅 ${fmtTime(cur.sunrise)}</span>
-            <span class="text-xs font-bold px-3 py-1 rounded-full bg-purple/10 text-purple">🌇 ${fmtTime(cur.sunset)}</span>
+          <div class="flex justify-center gap-4 mt-4">
+            <span class="text-sm font-bold px-4 py-1.5 rounded-full bg-orange/10 text-orange">🌅 ${fmtTime(cur.sunrise)}</span>
+            <span class="text-sm font-bold px-4 py-1.5 rounded-full bg-purple/10 text-purple">🌇 ${fmtTime(cur.sunset)}</span>
           </div>
         </div>`;
     }
@@ -221,15 +232,15 @@ import Base from '../layouts/Base.astro';
     const pts:{h:number;t:number}[] = [];
     for(let h=0;h<24;h++) pts.push({h,t:Math.floor(nowH)===h?cur.temp:Math.round(tAt(h)*10)/10});
 
-    const W=600,H=150,px=40,py=20,cw=W-px*2,ch=H-py*2;
+    const W=600,H=170,px=40,py=20,cw=W-px*2,ch=H-py*2;
     const ts=pts.map(p=>p.t); const mn=Math.min(...ts)-1,mx=Math.max(...ts)+1,rng=mx-mn||1;
     const toXY=(h:number,t:number):[number,number]=>[px+(h/23)*cw, py+(1-(t-mn)/rng)*ch];
 
     const svgPts=pts.map(p=>toXY(p.h,p.t));
     let path=`M${svgPts[0][0]},${svgPts[0][1]}`;
     for(let i=0;i<svgPts.length-1;i++){
-      const a=svgPts[Math.max(0,i-1)],b=svgPts[i],c=svgPts[i+1],d=svgPts[Math.min(svgPts.length-1,i+2)];
-      path+=` C${b[0]+(c[0]-a[0])/6},${b[1]+(c[1]-a[1])/6} ${c[0]-(d[0]-b[0])/6},${c[1]-(d[1]-b[1])/6} ${c[0]},${c[1]}`;
+      const a=svgPts[Math.max(0,i-1)],b=svgPts[i],cc=svgPts[i+1],d=svgPts[Math.min(svgPts.length-1,i+2)];
+      path+=` C${b[0]+(cc[0]-a[0])/6},${b[1]+(cc[1]-a[1])/6} ${cc[0]-(d[0]-b[0])/6},${cc[1]-(d[1]-b[1])/6} ${cc[0]},${cc[1]}`;
     }
     const fill=path+` L${svgPts[svgPts.length-1][0]},${py+ch} L${svgPts[0][0]},${py+ch} Z`;
     const [nx,ny]=toXY(nowH,cur.temp);
@@ -238,90 +249,144 @@ import Base from '../layouts/Base.astro';
     const step=rng>8?3:rng>4?2:1;
     for(let t=Math.ceil(mn);t<=Math.floor(mx);t+=step){
       const[,y]=toXY(0,t);
-      grid.push(`<line x1="${px}" y1="${y}" x2="${W-px}" y2="${y}" stroke="var(--color-border)" stroke-width="0.8" stroke-dasharray="3,3"/><text x="${px-4}" y="${y+3}" text-anchor="end" fill="var(--color-dim)" font-size="9" font-weight="700">${t}°</text>`);
+      grid.push(`<line x1="${px}" y1="${y}" x2="${W-px}" y2="${y}" stroke="var(--color-border)" stroke-width="0.8" stroke-dasharray="3,3"/><text x="${px-4}" y="${y+3}" text-anchor="end" fill="var(--color-dim)" font-size="10" font-weight="700">${t}°</text>`);
     }
-    const tLabels=[0,3,6,9,12,15,18,21].map(h=>`<text x="${toXY(h,0)[0]}" y="${H-2}" text-anchor="middle" fill="var(--color-dim)" font-size="9" font-weight="700">${h}시</text>`).join('');
+    const tLabels=[0,3,6,9,12,15,18,21].map(h=>`<text x="${toXY(h,0)[0]}" y="${H-2}" text-anchor="middle" fill="var(--color-dim)" font-size="10" font-weight="700">${h}시</text>`).join('');
 
     const curveSvg=`<svg viewBox="0 0 ${W} ${H}" class="curve-svg" preserveAspectRatio="xMidYMid meet">
-      <defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--color-gold)" stop-opacity="0.25"/><stop offset="100%" stop-color="var(--color-gold)" stop-opacity="0.02"/></linearGradient></defs>
+      <defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--color-gold)" stop-opacity="0.3"/><stop offset="100%" stop-color="var(--color-gold)" stop-opacity="0.02"/></linearGradient></defs>
       ${grid.join('')}
       <path d="${fill}" fill="url(#cg)"/>
-      <path d="${path}" fill="none" stroke="var(--color-gold)" stroke-width="2" stroke-linecap="round"/>
+      <path d="${path}" fill="none" stroke="var(--color-gold)" stroke-width="2.5" stroke-linecap="round"/>
       ${tLabels}
-      <line x1="${nx}" y1="${py}" x2="${nx}" y2="${py+ch}" stroke="var(--color-pink)" stroke-width="1.5" stroke-dasharray="3,3" class="now-line"/>
-      <circle cx="${nx}" cy="${ny}" r="5" fill="var(--color-pink)" class="now-dot"/>
-      <text x="${nx}" y="${ny-12}" text-anchor="middle" fill="var(--color-pink)" font-size="12" font-weight="900">${Math.round(cur.temp)}°</text>
-      <text x="${nx}" y="${py-4}" text-anchor="middle" fill="var(--color-pink)" font-size="8" font-weight="800">지금</text>
+      <line x1="${nx}" y1="${py}" x2="${nx}" y2="${py+ch}" stroke="var(--color-pink)" stroke-width="1.5" stroke-dasharray="4,4" class="now-line"/>
+      <circle cx="${nx}" cy="${ny}" r="6" fill="var(--color-pink)" class="now-dot"/>
+      <text x="${nx}" y="${ny-14}" text-anchor="middle" fill="var(--color-pink)" font-size="14" font-weight="900">${Math.round(cur.temp)}°</text>
+      <text x="${nx}" y="${py-4}" text-anchor="middle" fill="var(--color-pink)" font-size="9" font-weight="800">NOW</text>
     </svg>`;
 
     // --- Pollutants ---
     const polls = [
-      {name:'PM2.5',val:comp.pm2_5||0,max:75},{name:'PM10',val:comp.pm10||0,max:150},
-      {name:'O₃',val:comp.o3||0,max:180},{name:'NO₂',val:comp.no2||0,max:200},{name:'CO',val:comp.co||0,max:15000},
+      {name:'초미세먼지', sub:'PM2.5', val:comp.pm2_5||0, max:75, unit:'㎍/㎥', main:true},
+      {name:'미세먼지', sub:'PM10', val:comp.pm10||0, max:150, unit:'㎍/㎥', main:true},
+      {name:'오존', sub:'O₃', val:comp.o3||0, max:180, unit:'㎍/㎥'},
+      {name:'이산화질소', sub:'NO₂', val:comp.no2||0, max:200, unit:'㎍/㎥'},
+      {name:'일산화탄소', sub:'CO', val:comp.co||0, max:15000, unit:'㎍/㎥'},
     ];
 
     // --- Weekend ---
     let wsHtml = '';
     if (ws?.days?.length) {
       wsHtml = `
-        <div class="bg-card border border-border rounded-2xl p-5 mb-5">
-          <div class="flex items-center gap-2 mb-3">
-            <span class="text-2xl w-bounce">${ws.allGood?'🎉':'🌂'}</span>
-            <h3 class="text-sm font-black text-sub">이번 주말</h3>
+        <div class="bg-card border border-border rounded-2xl p-5 sm:p-6 mb-5">
+          <div class="flex items-center gap-2 mb-4">
+            <span class="text-3xl w-bounce">${ws.allGood?'🎉':'🌂'}</span>
+            <h3 class="sec-title text-sub">이번 주말</h3>
           </div>
           <div class="grid grid-cols-${ws.days.length} gap-3 mb-3">
             ${ws.days.map((d:any)=>`
-              <div class="bg-bg rounded-xl p-3 text-center">
-                <div class="text-xs font-black ${d.dayOfWeek===0||d.dayOfWeek===6?'text-pink':'text-sub'}">${typeof d.dayOfWeek==='number'?dayNames[d.dayOfWeek]:d.dayOfWeek}</div>
-                <div class="text-2xl my-1.5">${wEmoji[d.icon]||'🌡️'}</div>
-                <div class="text-sm font-black"><span class="text-orange">${d.high}°</span> / <span class="text-blue">${d.low}°</span></div>
-                <div class="text-[0.65rem] text-dim">${d.description}</div>
+              <div class="bg-bg rounded-xl p-4 text-center">
+                <div class="text-sm font-black ${d.dayOfWeek===0||d.dayOfWeek===6?'text-pink':'text-sub'}">${typeof d.dayOfWeek==='number'?dayNames[d.dayOfWeek]:d.dayOfWeek}</div>
+                <div class="text-3xl my-2">${wEmoji[d.icon]||'🌡️'}</div>
+                <div class="text-base font-black"><span class="text-orange">${d.high}°</span> / <span class="text-blue">${d.low}°</span></div>
+                <div class="text-xs text-dim font-bold mt-1">${d.description}</div>
               </div>
             `).join('')}
           </div>
-          <div class="text-xs font-bold text-sub bg-bg rounded-lg px-3 py-2 text-center">${ws.recommendation||''}</div>
+          <div class="text-sm font-bold text-sub bg-bg rounded-xl px-4 py-3 text-center">${ws.recommendation||''}</div>
         </div>`;
     }
 
-    // --- Forecast day names ---
     const fDayName = (dow:number) => dayNames[dow] || '';
 
     c.innerHTML = `
-      <!-- HERO: Current Weather -->
+      <!-- HERO: Current Weather — 대형 히어로 -->
       <div class="bg-card border border-border rounded-2xl p-6 sm:p-8 mb-5 relative overflow-hidden">
-        <div class="flex flex-col sm:flex-row items-center gap-4 sm:gap-8">
-          <div class="text-7xl sm:text-8xl w-bounce shrink-0">${emoji}</div>
+        <div class="flex flex-col sm:flex-row items-center gap-6 sm:gap-10">
+          <div class="text-8xl sm:text-[7rem] w-bounce shrink-0 leading-none">${emoji}</div>
           <div class="text-center sm:text-left flex-1">
             <div class="hero-temp">${Math.round(cur.temp)}°</div>
-            <div class="text-lg font-black text-sub mt-1">${cur.description}</div>
-            <div class="text-sm text-dim font-bold mt-0.5">체감 ${Math.round(cur.feels_like)}° · ${cur.name}</div>
+            <div class="text-xl sm:text-2xl font-black text-sub mt-2">${cur.description}</div>
+            <div class="text-base text-dim font-bold mt-1">체감 <span class="text-text font-black">${Math.round(cur.feels_like)}°</span> · ${cur.name}</div>
           </div>
-          <div class="grid grid-cols-2 gap-2 shrink-0 text-center">
-            <div class="m-card bg-bg rounded-xl px-4 py-3">
-              <div class="text-xl font-black text-blue">${cur.humidity}%</div>
-              <div class="text-[0.6rem] font-bold text-dim">💧 습도</div>
-            </div>
-            <div class="m-card bg-bg rounded-xl px-4 py-3">
-              <div class="text-xl font-black text-cyan">${cur.wind}<span class="text-xs">m/s</span></div>
-              <div class="text-[0.6rem] font-bold text-dim">🌬️ 바람</div>
-            </div>
-            <div class="m-card bg-bg rounded-xl px-4 py-3">
-              <div class="text-xl font-black text-purple">${cur.clouds}%</div>
-              <div class="text-[0.6rem] font-bold text-dim">☁️ 구름</div>
-            </div>
-            <div class="m-card bg-bg rounded-xl px-4 py-3">
-              <div class="text-xl font-black text-orange">${cur.visibility ? Math.round(cur.visibility/1000) : '-'}<span class="text-xs">km</span></div>
-              <div class="text-[0.6rem] font-bold text-dim">👁️ 가시</div>
-            </div>
+        </div>
+        <!-- Quick metrics inline -->
+        <div class="grid grid-cols-4 gap-3 mt-6">
+          <div class="m-card bg-bg rounded-xl px-3 py-3 text-center">
+            <div class="text-2xl font-black text-blue">${cur.humidity}<span class="text-sm">%</span></div>
+            <div class="text-xs font-bold text-dim mt-0.5">💧 습도</div>
+          </div>
+          <div class="m-card bg-bg rounded-xl px-3 py-3 text-center">
+            <div class="text-2xl font-black text-cyan">${cur.wind}<span class="text-sm">m/s</span></div>
+            <div class="text-xs font-bold text-dim mt-0.5">🌬️ 바람</div>
+          </div>
+          <div class="m-card bg-bg rounded-xl px-3 py-3 text-center">
+            <div class="text-2xl font-black text-purple">${cur.clouds}<span class="text-sm">%</span></div>
+            <div class="text-xs font-bold text-dim mt-0.5">☁️ 구름</div>
+          </div>
+          <div class="m-card bg-bg rounded-xl px-3 py-3 text-center">
+            <div class="text-2xl font-black text-orange">${cur.visibility ? Math.round(cur.visibility/1000) : '-'}<span class="text-sm">km</span></div>
+            <div class="text-xs font-bold text-dim mt-0.5">👁️ 시야</div>
           </div>
         </div>
       </div>
 
+      <!-- AQI — 대형 미세먼지 카드 -->
+      <div class="aqi-hero bg-card border ${aqi.border} rounded-2xl p-6 sm:p-8 mb-5 ${aqi.color}">
+        <div class="flex items-start gap-5 sm:gap-8 relative z-10">
+          <div class="shrink-0">
+            <div class="text-5xl sm:text-6xl w-bounce">${aqi.emoji}</div>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-baseline gap-3 flex-wrap">
+              <div class="aqi-label-big ${aqi.color}">${aqi.label}</div>
+              <span class="text-sm font-bold text-dim">대기질 지수</span>
+            </div>
+            <div class="text-sm sm:text-base text-sub font-bold mt-1">${data.aqi?.comment || ''}</div>
+          </div>
+        </div>
+
+        <!-- PM2.5 & PM10 대형 표시 -->
+        <div class="grid grid-cols-2 gap-4 mt-6 relative z-10">
+          ${polls.filter(p => p.main).map(p => {
+            const r = Math.min(p.val / p.max, 1);
+            return `
+              <div class="bg-bg/60 backdrop-blur-sm rounded-xl p-4 sm:p-5">
+                <div class="flex items-baseline justify-between">
+                  <span class="text-base font-black text-sub">${p.name}</span>
+                  <span class="text-xs text-dim font-bold">${p.sub}</span>
+                </div>
+                <div class="aqi-big-num ${barText(r)} mt-1">${Math.round(p.val)}</div>
+                <div class="text-xs text-dim font-bold mt-1">${p.unit}</div>
+                <div class="w-full h-2 bg-border rounded-full mt-2 overflow-hidden">
+                  <div class="aqi-bar-thick ${barColor(r)}" data-w="${r*100}%"></div>
+                </div>
+              </div>`;
+          }).join('')}
+        </div>
+
+        <!-- 기타 오염물질 -->
+        <div class="grid grid-cols-3 gap-3 mt-4 relative z-10">
+          ${polls.filter(p => !p.main).map(p => {
+            const r = Math.min(p.val / p.max, 1);
+            return `
+              <div class="bg-bg/40 rounded-lg p-3 text-center">
+                <div class="text-sm font-black text-sub">${p.name}</div>
+                <div class="text-xs text-dim font-bold">${p.sub}</div>
+                <div class="text-xl font-black ${barText(r)} mt-1">${Math.round(p.val)}</div>
+                <div class="w-full h-1.5 bg-border rounded-full mt-1.5 overflow-hidden">
+                  <div class="aqi-bar-thick ${barColor(r)}" data-w="${r*100}%"></div>
+                </div>
+              </div>`;
+          }).join('')}
+        </div>
+      </div>
+
       <!-- Temp Curve -->
-      <div class="bg-card border border-border rounded-2xl p-5 mb-5">
-        <div class="flex items-center justify-between mb-2">
-          <h3 class="text-sm font-black text-sub">🌡️ 하루 기온 변화</h3>
-          <div class="flex gap-3 text-xs font-bold text-dim">
+      <div class="bg-card border border-border rounded-2xl p-5 sm:p-6 mb-5">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="sec-title text-sub">🌡️ 하루 기온 변화</h3>
+          <div class="flex gap-4 text-sm font-bold text-dim">
             <span>최저 <span class="text-blue font-black">${tMin}°</span></span>
             <span>최고 <span class="text-orange font-black">${tMax}°</span></span>
           </div>
@@ -332,41 +397,20 @@ import Base from '../layouts/Base.astro';
       <!-- Sun Arc -->
       ${sunHtml}
 
-      <!-- AQI -->
-      <div class="bg-card border border-border rounded-2xl p-5 mb-5">
-        <div class="flex items-center gap-3 mb-4">
-          <span class="text-3xl w-bounce">${aqi.emoji}</span>
-          <div>
-            <div class="text-lg font-black ${aqi.color}">${aqi.label}</div>
-            <div class="text-xs text-dim font-bold">${data.aqi?.comment || aqi.comment}</div>
-          </div>
-        </div>
-        <div class="grid grid-cols-5 gap-2">
-          ${polls.map(p=>{
-            const r=Math.min(p.val/p.max,1);
-            return `<div class="text-center">
-              <div class="text-[0.65rem] text-dim font-bold">${p.name}</div>
-              <div class="text-sm font-black ${barText(r)}">${Math.round(p.val)}</div>
-              <div class="w-full h-1.5 bg-bg rounded-full mt-1 overflow-hidden"><div class="h-full rounded-full aqi-bar ${barColor(r)}" data-w="${r*100}%"></div></div>
-            </div>`;
-          }).join('')}
-        </div>
-      </div>
-
       <!-- Weekend -->
       ${wsHtml}
 
       <!-- 5-Day Forecast -->
-      <h3 class="text-lg font-black text-text mb-3">📅 5일 예보</h3>
-      <div class="grid grid-cols-5 gap-2 mb-6">
+      <h3 class="sec-title text-text mb-4">📅 5일 예보</h3>
+      <div class="grid grid-cols-5 gap-2 sm:gap-3 mb-6">
         ${forecast.map((d:any,i:number)=>`
-          <div class="fc-card bg-card border ${d.isWeekend?'border-pink/30':'border-border'} rounded-xl p-3 text-center">
-            <div class="text-xs font-black ${d.isWeekend?'text-pink':'text-sub'}">${typeof d.dayOfWeek==='number'?fDayName(d.dayOfWeek):d.dayOfWeek}</div>
-            <div class="text-[0.6rem] font-mono text-dim">${d.date?.slice(5)||''}</div>
-            <div class="text-3xl my-2 fc-emoji">${wEmoji[d.icon]||'🌡️'}</div>
-            <div class="text-sm font-black"><span class="text-orange">${d.high}°</span><span class="text-dim mx-0.5">/</span><span class="text-blue">${d.low}°</span></div>
-            <div class="text-[0.6rem] text-dim font-bold mt-0.5">${d.description}</div>
-            ${d.pop>0?`<div class="text-[0.6rem] text-blue font-bold mt-0.5">💧${d.pop}%</div>`:''}
+          <div class="fc-card bg-card border ${d.isWeekend?'border-pink/30':'border-border'} rounded-xl p-3 sm:p-4 text-center">
+            <div class="text-sm font-black ${d.isWeekend?'text-pink':'text-sub'}">${typeof d.dayOfWeek==='number'?fDayName(d.dayOfWeek):d.dayOfWeek}</div>
+            <div class="text-xs font-mono text-dim">${d.date?.slice(5)||''}</div>
+            <div class="text-4xl my-2 fc-emoji">${wEmoji[d.icon]||'🌡️'}</div>
+            <div class="text-base font-black"><span class="text-orange">${d.high}°</span><span class="text-dim mx-0.5">/</span><span class="text-blue">${d.low}°</span></div>
+            <div class="text-xs text-dim font-bold mt-1">${d.description}</div>
+            ${d.pop>0?`<div class="text-xs text-blue font-bold mt-1">💧${d.pop}%</div>`:''}
           </div>
         `).join('')}
       </div>
@@ -375,7 +419,7 @@ import Base from '../layouts/Base.astro';
     // Animate AQI bars
     requestAnimationFrame(()=>{
       setTimeout(()=>{
-        document.querySelectorAll('.aqi-bar').forEach(b=>{
+        document.querySelectorAll('.aqi-bar-thick').forEach(b=>{
           (b as HTMLElement).style.width=(b as HTMLElement).dataset.w||'0%';
         });
       },300);

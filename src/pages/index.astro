@@ -671,15 +671,17 @@ import Base from '../layouts/Base.astro';
   });
 
   // --- Load data ---
+  const API = 'https://api.aurore.work';
   async function init() {
     try {
       const [sRes, hRes, dRes] = await Promise.all([
-        fetch('services.json'),
-        fetch('history.json'),
-        fetch('deploy-stats.json').catch(() => null),
+        fetch(`${API}/services`),
+        fetch(`${API}/history`),
+        fetch(`${API}/deploy-stats?project=ore-no-dash`).catch(() => null),
       ]);
       const services: Service[] = await sRes.json();
-      const history: HistoryDay[] = await hRes.json();
+      const hData = await hRes.json();
+      const history: HistoryDay[] = hData.days || hData;
       renderServices(services);
       setupFilters(services);
       renderHistory(history);

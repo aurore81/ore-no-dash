@@ -155,8 +155,16 @@ import Base from '../layouts/Base.astro';
   };
 
   async function init() {
-    const res = await fetch('/claude-commits.json');
-    DATA = await res.json();
+    const res = await fetch('https://api.aurore.work/commits?limit=2000');
+    const json = await res.json();
+    DATA = (json.commits || json).map((c: any) => ({
+      d: c.d || c.date,
+      iso: c.iso,
+      t: c.t || c.type,
+      m: c.m || c.message,
+      p: c.p || c.project,
+      h: c.h || c.hash,
+    }));
     DATA.sort((a, b) => b.iso.localeCompare(a.iso));
 
     renderStatsRow();

@@ -6,6 +6,8 @@ on:
 
 env:
   NTFY_TOPIC: aurore-deploy-af55e122
+  API_URL: https://api.aurore.work
+  API_KEY: ore-no-write-8f3k2m9x
 
 jobs:
   deploy:
@@ -15,6 +17,9 @@ jobs:
       deployments: write
     steps:
       - uses: actions/checkout@v4
+
+      - name: Record deploy start time
+        run: echo "DEPLOY_START=$(date +%s)" >> $GITHUB_ENV
 
       - name: Notify deploy start
         run: |
@@ -27,18 +32,6 @@ jobs:
           cache: npm
 
       - run: npm ci
-
-      - name: Collect deploy stats
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: |
-          TOTAL=$(curl -s "https://api.cloudflare.com/client/v4/accounts/$ACCOUNT_ID/pages/projects/ore-no-dash/deployments?per_page=1" \
-            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" | jq -r '.result_info.total_count // 0')
-          TOTAL=$((TOTAL + 1))
-          echo "{\"total\":$TOTAL,\"lastDeployedAt\":\"$(date -u '+%Y-%m-%dT%H:%M:%SZ')\",\"lastStatus\":\"success\",\"project\":\"ore-no-dash\"}" > public/deploy-stats.json
-          echo "DEPLOY_NUM=$TOTAL" >> $GITHUB_ENV
-
       - run: npm run build
 
       - uses: cloudflare/wrangler-action@v3
@@ -47,12 +40,19 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy dist --project-name ore-no-dash --commit-dirty=true --commit-message "Deploy from GitHub Actions"
 
-      - name: Notify deploy success
+      - name: Record deploy to DB + notify success
         if: success()
         run: |
           MSG=$(git log -1 --pretty=%s)
+          HASH=$(git log -1 --pretty=%h)
+          DURATION=$(( $(date +%s) - $DEPLOY_START ))
+          curl -s -X POST "$API_URL/deploy-stats" \
+            -H "Content-Type: application/json" \
+            -H "X-API-Key: $API_KEY" \
+            -d "{\"project\":\"ore-no-dash\",\"status\":\"success\",\"commit_hash\":\"$HASH\",\"commit_message\":\"$MSG\",\"branch\":\"main\",\"duration_s\":$DURATION}" || true
+          TOTAL=$(curl -s "$API_URL/deploy-stats?project=ore-no-dash" | jq -r '.total // "?"')
           curl -s \
-            -H "Title: ✅ 배포 완료 #$DEPLOY_NUM" \
+            -H "Title: ✅ 배포 완료 #$TOTAL" \
             -H "Tags: white_check_mark,rocket" \
             -H "Priority: default" \
             -H "Click: https://home.aurore.work" \
@@ -60,10 +60,16 @@ jobs:
             -d "배포 성공! ${MSG} - https://home.aurore.work" \
             https://ntfy.sh/$NTFY_TOPIC || true
 
-      - name: Notify deploy failure
+      - name: Record failure to DB + notify
         if: failure()
         run: |
           MSG=$(git log -1 --pretty=%s)
+          HASH=$(git log -1 --pretty=%h)
+          DURATION=$(( $(date +%s) - $DEPLOY_START ))
+          curl -s -X POST "$API_URL/deploy-stats" \
+            -H "Content-Type: application/json" \
+            -H "X-API-Key: $API_KEY" \
+            -d "{\"project\":\"ore-no-dash\",\"status\":\"failure\",\"commit_hash\":\"$HASH\",\"commit_message\":\"$MSG\",\"branch\":\"main\",\"duration_s\":$DURATION}" || true
           curl -s \
             -H "Title: ❌ 배포 실패!" \
             -H "Tags: x,warning" \
