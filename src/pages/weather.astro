@@ -186,25 +186,24 @@ import Base from '../layouts/Base.astro';
     100% { transform: scale(1.1) rotate(0); }
   }
 
-  /* === POWER LEVEL / SCORE === */
-  .power-bar {
-    height: 12px; border-radius: 9999px; overflow: hidden;
-    background: var(--color-border); position: relative;
+  /* === TEMP CURVE CHART === */
+  .temp-curve-container {
+    position: relative; height: 200px; width: 100%;
   }
-  .power-bar-fill {
-    height: 100%; border-radius: 9999px;
-    background: linear-gradient(90deg, var(--color-green), var(--color-gold), var(--color-pink));
-    transition: width 2s cubic-bezier(0.34, 1.56, 0.64, 1);
-    position: relative;
+  .temp-curve-svg { width: 100%; height: 100%; }
+  .temp-now-dot {
+    animation: now-dot-pulse 2s ease-in-out infinite;
   }
-  .power-bar-fill::after {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-    background: linear-gradient(90deg, transparent 40%, rgba(255,255,255,0.15) 50%, transparent 60%);
-    animation: shine-bar 2s infinite;
+  @keyframes now-dot-pulse {
+    0%, 100% { r: 6; opacity: 1; }
+    50% { r: 9; opacity: 0.8; }
   }
-  @keyframes shine-bar {
-    0% { transform: translateX(-200%); }
-    100% { transform: translateX(200%); }
+  .temp-now-line {
+    animation: now-line-fade 2s ease-in-out infinite;
+  }
+  @keyframes now-line-fade {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 0.3; }
   }
 
   /* === VIBE CARD === */
@@ -294,13 +293,13 @@ import Base from '../layouts/Base.astro';
         if (!navigator.geolocation) { reject(new Error('no geo')); return; }
         navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000, maximumAge: 300000 });
       });
-      return { lat: pos.coords.latitude, lon: pos.coords.longitude, source: 'gps', label: 'GPS 位置' };
+      return { lat: pos.coords.latitude, lon: pos.coords.longitude, source: 'gps', label: 'GPS 위치' };
     } catch {}
     try {
       const res = await fetch('http://ip-api.com/json/?fields=lat,lon,city,regionName', { signal: AbortSignal.timeout(4000) });
       if (res.ok) {
         const data = await res.json();
-        if (data.lat && data.lon) return { lat: data.lat, lon: data.lon, source: 'ip', label: `IP (${data.city || data.regionName || '不明'})` };
+        if (data.lat && data.lon) return { lat: data.lat, lon: data.lon, source: 'ip', label: `IP (${data.city || data.regionName || '알 수 없음'})` };
       }
     } catch {}
     return { lat: 37.5665, lon: 126.978, source: 'fallback', label: '서울 (기본)' };
@@ -346,8 +345,8 @@ import Base from '../layouts/Base.astro';
   function initMap(lat: number, lon: number) {
     if (typeof (window as any).L === 'undefined') return;
     const L = (window as any).L;
-    map = L.map('map', { zoomControl: false, attributionControl: true, dragging: false, scrollWheelZoom: false }).setView([lat, lon], 13);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    map = L.map('map', { zoomControl: false, attributionControl: true, dragging: true, scrollWheelZoom: false }).setView([lat, lon], 14);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
       subdomains: 'abcd', maxZoom: 19
     }).addTo(map);
@@ -416,8 +415,111 @@ import Base from '../layouts/Base.astro';
     const outfit = data.outfit;
     const coding = data.coding;
     const score = data.todayScore;
-    const power = data.powerLevel;
     const timeInfo = data.time;
+
+    // --- Generate 24h temperature curve (cosine interpolation) ---
+    const todayForecast = forecast[0];
+    const tMin = todayForecast?.low ?? (cur.temp_min || cur.temp - 3);
+    const tMax = todayForecast?.high ?? (cur.temp_max || cur.temp + 3);
+    const nowHour = new Date().getHours() + new Date().getMinutes() / 60;
+
+    // Cosine model: coldest at 6am, warmest at 15pm
+    function tempAtHour(h: number): number {
+      // Normalize: 6am = coldest, 3pm = warmest
+      const phase = ((h - 6) / 24) * 2 * Math.PI;
+      const ratio = (1 - Math.cos(phase)) / 2; // 0 at h=6, 1 at h=18... adjust
+      // Better model: coldest ~6am, warmest ~3pm
+      const shifted = ((h - 6 + 24) % 24) / 9; // 0 at 6am, 1 at 3pm
+      if (h >= 6 && h <= 15) {
+        return tMin + (tMax - tMin) * (1 - Math.cos(shifted * Math.PI)) / 2;
+      } else {
+        // After 3pm, cool down; before 6am, cold
+        const cool = h > 15 ? (h - 15) / 15 : (h + 9) / 15;
+        return tMax - (tMax - tMin) * (1 - Math.cos(cool * Math.PI)) / 2;
+      }
+    }
+
+    // Override current hour with actual temp
+    const hourlyTemps: {h: number; t: number; isNow: boolean}[] = [];
+    for (let h = 0; h < 24; h++) {
+      const isNowHour = Math.floor(nowHour) === h;
+      hourlyTemps.push({
+        h,
+        t: isNowHour ? cur.temp : Math.round(tempAtHour(h) * 10) / 10,
+        isNow: isNowHour,
+      });
+    }
+
+    // Build SVG path
+    const svgW = 600, svgH = 160, padX = 40, padY = 25;
+    const chartW = svgW - padX * 2, chartH = svgH - padY * 2;
+    const allTemps = hourlyTemps.map(p => p.t);
+    const chartMin = Math.min(...allTemps) - 1;
+    const chartMax = Math.max(...allTemps) + 1;
+    const tempRange = chartMax - chartMin || 1;
+
+    function toSvg(h: number, t: number): [number, number] {
+      const x = padX + (h / 23) * chartW;
+      const y = padY + (1 - (t - chartMin) / tempRange) * chartH;
+      return [x, y];
+    }
+
+    // Smooth curve using catmull-rom → cubic bezier
+    let pathD = '';
+    const points = hourlyTemps.map(p => toSvg(p.h, p.t));
+    pathD = `M${points[0][0]},${points[0][1]}`;
+    for (let i = 0; i < points.length - 1; i++) {
+      const p0 = points[Math.max(0, i - 1)];
+      const p1 = points[i];
+      const p2 = points[i + 1];
+      const p3 = points[Math.min(points.length - 1, i + 2)];
+      const cp1x = p1[0] + (p2[0] - p0[0]) / 6;
+      const cp1y = p1[1] + (p2[1] - p0[1]) / 6;
+      const cp2x = p2[0] - (p3[0] - p1[0]) / 6;
+      const cp2y = p2[1] - (p3[1] - p1[1]) / 6;
+      pathD += ` C${cp1x},${cp1y} ${cp2x},${cp2y} ${p2[0]},${p2[1]}`;
+    }
+
+    // Fill area under curve
+    const fillD = pathD + ` L${points[points.length - 1][0]},${padY + chartH} L${points[0][0]},${padY + chartH} Z`;
+
+    // Current time position
+    const [nowX, nowY] = toSvg(nowHour, cur.temp);
+
+    // Time labels
+    const timeLabels = [0, 3, 6, 9, 12, 15, 18, 21].map(h => {
+      const [x] = toSvg(h, 0);
+      return `<text x="${x}" y="${svgH - 3}" text-anchor="middle" fill="var(--color-dim)" font-size="10" font-weight="700">${h}시</text>`;
+    }).join('');
+
+    // Temperature grid lines
+    const gridTemps = [];
+    const step = tempRange > 8 ? 3 : tempRange > 4 ? 2 : 1;
+    for (let t = Math.ceil(chartMin); t <= Math.floor(chartMax); t += step) {
+      const [, y] = toSvg(0, t);
+      gridTemps.push(`<line x1="${padX}" y1="${y}" x2="${svgW - padX}" y2="${y}" stroke="var(--color-border)" stroke-width="1" stroke-dasharray="4,4"/>
+        <text x="${padX - 5}" y="${y + 4}" text-anchor="end" fill="var(--color-dim)" font-size="10" font-weight="700">${t}°</text>`);
+    }
+
+    const tempCurveSvg = `
+      <svg viewBox="0 0 ${svgW} ${svgH}" class="temp-curve-svg" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <linearGradient id="curve-grad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="var(--color-gold)" stop-opacity="0.3"/>
+            <stop offset="100%" stop-color="var(--color-gold)" stop-opacity="0.02"/>
+          </linearGradient>
+        </defs>
+        ${gridTemps.join('')}
+        <path d="${fillD}" fill="url(#curve-grad)"/>
+        <path d="${pathD}" fill="none" stroke="var(--color-gold)" stroke-width="2.5" stroke-linecap="round"/>
+        ${timeLabels}
+        <!-- Now indicator -->
+        <line x1="${nowX}" y1="${padY}" x2="${nowX}" y2="${padY + chartH}" stroke="var(--color-pink)" stroke-width="1.5" stroke-dasharray="4,3" class="temp-now-line"/>
+        <circle cx="${nowX}" cy="${nowY}" r="6" fill="var(--color-pink)" class="temp-now-dot"/>
+        <text x="${nowX}" y="${nowY - 14}" text-anchor="middle" fill="var(--color-pink)" font-size="13" font-weight="900">${Math.round(cur.temp)}°</text>
+        <text x="${nowX}" y="${padY - 5}" text-anchor="middle" fill="var(--color-pink)" font-size="9" font-weight="800">지금</text>
+      </svg>
+    `;
 
     const pollutants = [
       { name: 'PM2.5', val: components.pm2_5 || 0, max: 75 },
@@ -447,7 +549,7 @@ import Base from '../layouts/Base.astro';
           <div class="text-8xl weather-emoji-big">${emoji}</div>
           <div class="temp-display">${Math.round(cur.temp)}°</div>
           <div class="text-xl font-extrabold text-sub capitalize">${cur.description}</div>
-          <div class="text-sm text-dim font-bold">体感 ${Math.round(cur.feels_like)}° · ${cur.name}</div>
+          <div class="text-sm text-dim font-bold">체감 ${Math.round(cur.feels_like)}° · ${cur.name}</div>
         </div>
 
         <!-- Key metrics -->
@@ -468,6 +570,25 @@ import Base from '../layouts/Base.astro';
             <div class="text-3xl font-black text-orange metric-value">${cur.rain || 0}mm</div>
             <div class="text-xs font-extrabold text-dim uppercase mt-1">🌧️ 강수</div>
           </div>
+        </div>
+      </div>
+
+      <!-- ===== DAILY TEMPERATURE CURVE ===== -->
+      <div class="bg-card border-2 border-border rounded-2xl p-6 mb-6 relative overflow-hidden">
+        <h3 class="section-header text-sm font-extrabold text-sub mb-4 relative z-1">🌡️ 오늘 하루 기온 변화</h3>
+        <div class="flex items-center gap-4 mb-3">
+          <div class="text-xs font-bold text-dim">
+            최저 <span class="text-blue font-black text-sm">${tMin}°</span>
+          </div>
+          <div class="text-xs font-bold text-dim">
+            최고 <span class="text-orange font-black text-sm">${tMax}°</span>
+          </div>
+          <div class="text-xs font-bold text-dim ml-auto">
+            현재 <span class="text-pink font-black text-sm">${Math.round(cur.temp)}°</span>
+          </div>
+        </div>
+        <div class="temp-curve-container">
+          ${tempCurveSvg}
         </div>
       </div>
 
@@ -500,30 +621,16 @@ import Base from '../layouts/Base.astro';
       </div>
       ` : ''}
 
-      <!-- ===== TODAY'S SCORE & POWER ===== -->
-      ${score || power ? `
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-        ${score ? `
+      <!-- ===== TODAY'S SCORE ===== -->
+      ${score ? `
+      <div class="mb-6">
         <div class="vibe-card bg-card border-2 border-gold/20 rounded-2xl p-6 text-center" style="animation-delay:0.2s">
           <div class="relative z-1">
-            <div class="text-sm font-extrabold text-gold mb-2 uppercase">⭐ Today's Score</div>
+            <div class="text-sm font-extrabold text-gold mb-2 uppercase">⭐ 오늘의 날씨 점수</div>
             <div class="text-6xl font-black text-gold mb-2" style="text-shadow:0 0 30px rgba(255,215,0,0.3)">${score}</div>
-            <div class="text-xs text-sub font-bold">오늘의 날씨 점수</div>
+            <div class="text-xs text-sub font-bold">날씨 컨디션 종합 점수</div>
           </div>
         </div>
-        ` : ''}
-        ${power ? `
-        <div class="vibe-card bg-card border-2 border-pink/20 rounded-2xl p-6" style="animation-delay:0.4s">
-          <div class="relative z-1">
-            <div class="text-sm font-extrabold text-pink mb-2 uppercase text-center">⚡ Power Level</div>
-            <div class="text-center text-4xl font-black text-pink mb-3">${power.level || '?'}</div>
-            <div class="power-bar" id="power-bar">
-              <div class="power-bar-fill" id="power-fill" style="width:0%"></div>
-            </div>
-            <div class="text-xs text-sub font-bold mt-2 text-center">${power.description || '파워 레벨 측정 中...'}</div>
-          </div>
-        </div>
-        ` : ''}
       </div>
       ` : ''}
 
@@ -644,13 +751,6 @@ import Base from '../layouts/Base.astro';
         });
       }, 300);
 
-      // Animate power bar
-      const powerFill = document.getElementById('power-fill');
-      if (powerFill && power) {
-        setTimeout(() => {
-          powerFill.style.width = (power.value || power.level || 50) + '%';
-        }, 500);
-      }
     });
   }
 

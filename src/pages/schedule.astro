@@ -346,22 +346,24 @@ import Base from '../layouts/Base.astro';
     setTimeout(() => toast.classList.remove('show'), 3000);
   }
 
-  // === Send to ntfy ===
+  // === Send to ntfy (JSON body — supports UTF-8 Korean) ===
   async function sendToNtfy(sched: Schedule, scheduledTime?: string): Promise<string | null> {
-    const headers: Record<string, string> = {
-      'Title': sched.title,
-      'Priority': sched.priority.toString(),
-      'Tags': sched.emoji,
+    const payload: Record<string, any> = {
+      topic: NTFY_TOPIC,
+      title: sched.title,
+      message: sched.message,
+      priority: sched.priority,
+      tags: [sched.emoji],
     };
     if (scheduledTime) {
-      headers['At'] = scheduledTime;
+      payload.delay = scheduledTime;
     }
 
     try {
-      const res = await fetch(`https://ntfy.sh/${NTFY_TOPIC}`, {
+      const res = await fetch('https://ntfy.sh', {
         method: 'POST',
-        headers,
-        body: sched.message,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error(`ntfy error: ${res.status}`);
       const data = await res.json();
@@ -601,7 +603,7 @@ import Base from '../layouts/Base.astro';
 
     submitBtn.classList.add('sending');
     const submitText = submitBtn.querySelector('.sched-submit-text');
-    if (submitText) submitText.textContent = '⏳ 送信中...';
+    if (submitText) submitText.textContent = '⏳ 전송 중...';
 
     const sched: Schedule = {
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
@@ -635,7 +637,7 @@ import Base from '../layouts/Base.astro';
 
       submitBtn.classList.remove('sending');
       submitBtn.classList.add('success');
-      if (submitText) submitText.textContent = '✅ 予約完了！';
+      if (submitText) submitText.textContent = '✅ 예약 완료!';
       showToast('✨ 알림 예약 성공! ' + (selectedRepeat !== 'none' ? '🔄 반복 설정됨' : ''));
 
       setTimeout(() => {
