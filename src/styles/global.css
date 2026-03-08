@@ -1,0 +1,61 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap');
+
+@theme inline {
+  --color-bg: #0c0a1a;
+  --color-card: #161333;
+  --color-card-hover: #1e1a45;
+  --color-border: #2a2555;
+  --color-text: #f0eeff;
+  --color-sub: #b8b0d8;
+  --color-dim: #706a90;
+  --color-purple: #a78bfa;
+  --color-pink: #f472b6;
+  --color-blue: #60a5fa;
+  --color-green: #34d399;
+  --color-orange: #fb923c;
+  --color-yellow: #fbbf24;
+  --color-red: #f87171;
+  --color-cyan: #22d3ee;
+  --color-gold: #ffd700;
+  --color-accent: #8b5cf6;
+  --font-sans: 'Nunito', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+/* Time-based themes */
+.theme-morning {
+  --color-bg: #fefbf3;
+  --color-card: #ffffff;
+  --color-card-hover: #fff9ee;
+  --color-border: #e8dcc8;
+  --color-text: #1a1510;
+  --color-sub: #5a5040;
+  --color-dim: #9a9080;
+  --color-accent: #f59e0b;
+  --color-gold: #d97706;
+}
+
+.theme-afternoon {
+  --color-bg: #f0f4ff;
+  --color-card: #ffffff;
+  --color-card-hover: #f5f8ff;
+  --color-border: #dde5f5;
+  --color-text: #111827;
+  --color-sub: #4b5563;
+  --color-dim: #9ca3af;
+  --color-accent: #3b82f6;
+  --color-gold: #2563eb;
+}
+
+.theme-evening {
+  --color-bg: #1a1025;
+  --color-card: #201540;
+  --color-card-hover: #2a1d50;
+  --color-border: #3a2a60;
+  --color-text: #f0e8ff;
+  --color-sub: #c9b8e0;
+  --color-dim: #8a7aa0;
+  --color-accent: #e879f9;
+  --color-gold: #f472b6;
+}

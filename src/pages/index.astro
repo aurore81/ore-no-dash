@@ -1,1157 +1,257 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🏠 aurore.work</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
-
-    :root {
-      --bg: #0f0e17;
-      --bg2: #1a1a2e;
-      --card: #16213e;
-      --card-hover: #1a2847;
-      --border: #2a3a5c;
-      --text: #fffffe;
-      --text-sub: #c9d1d9;
-      --text-dim: #8b949e;
-      --purple: #c59cff;
-      --pink: #ff7eb3;
-      --blue: #7ec8e3;
-      --green: #7effa0;
-      --orange: #ffb86e;
-      --yellow: #ffe66e;
-      --red: #ff6e6e;
-      --cyan: #00f5d4;
-      --anime-gold: #ffd700;
-    }
-
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    body {
-      font-family: 'Nunito', -apple-system, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-
-    /* === ANIME SPEED LINES BACKGROUND === */
-    .speed-lines {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      pointer-events: none;
-      z-index: 0;
-      overflow: hidden;
-      opacity: 0.03;
-    }
-
-    .speed-line {
-      position: absolute;
-      background: white;
-      transform-origin: center;
-    }
-
-    /* === FLOATING PARTICLES === */
-    .particles {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      pointer-events: none;
-      z-index: 0;
-      overflow: hidden;
-    }
-
-    .particle {
-      position: absolute;
-      opacity: 0.2;
-      animation: float linear infinite;
-    }
-
-    @keyframes float {
-      0% { transform: translateY(100vh) rotate(0deg) scale(1); }
-      50% { transform: translateY(50vh) rotate(180deg) scale(1.3); }
-      100% { transform: translateY(-10vh) rotate(360deg) scale(1); }
-    }
-
-    /* === ANIME SPARKLE === */
-    .sparkle {
-      position: fixed;
-      pointer-events: none;
-      z-index: 999;
-      font-size: 1.5rem;
-      animation: sparkle-pop 0.6s ease-out forwards;
-    }
-
-    @keyframes sparkle-pop {
-      0% { transform: scale(0) rotate(0deg); opacity: 1; }
-      50% { transform: scale(1.5) rotate(180deg); opacity: 1; }
-      100% { transform: scale(0) rotate(360deg); opacity: 0; }
-    }
-
-    /* === CONTAINER === */
-    .container {
-      position: relative;
-      z-index: 1;
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 2rem;
-    }
-
-    /* === HEADER with ANIME EFFECT === */
-    .header {
-      text-align: center;
-      margin-bottom: 2rem;
-      padding: 2rem 0;
-      position: relative;
-    }
-
-    .header-emoji {
-      font-size: 4rem;
-      display: block;
-      margin-bottom: 0.5rem;
-      animation: anime-bounce 1.5s ease-in-out infinite;
-      filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.4));
-    }
-
-    @keyframes anime-bounce {
-      0%, 100% { transform: translateY(0) scale(1); }
-      30% { transform: translateY(-20px) scale(1.1); }
-      50% { transform: translateY(-15px) scale(1.05); }
-    }
-
-    .header h1 {
-      font-size: 2.8rem;
-      font-weight: 900;
-      background: linear-gradient(135deg, #ffd700, #ff6eb4, #7ec8e3, #c59cff);
-      background-size: 300% 300%;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      animation: gradient-shift 4s ease infinite;
-      text-shadow: none;
-      letter-spacing: -0.02em;
-    }
-
-    @keyframes gradient-shift {
-      0%, 100% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-    }
-
-    .header p {
-      color: var(--text-sub);
-      font-size: 1rem;
-      margin-top: 0.3rem;
-      font-weight: 600;
-    }
-
-    /* === JOJO MENACING TEXT === */
-    .menacing {
-      position: absolute;
-      font-size: 1.8rem;
-      color: var(--purple);
-      opacity: 0;
-      font-weight: 900;
-      animation: menacing 3s ease-in-out infinite;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-      font-style: italic;
-    }
-
-    .menacing:nth-child(2) { right: 5%; top: 20%; animation-delay: 0s; }
-    .menacing:nth-child(3) { left: 5%; top: 30%; animation-delay: 1s; }
-    .menacing:nth-child(4) { right: 10%; bottom: 30%; animation-delay: 2s; }
-
-    @keyframes menacing {
-      0%, 100% { opacity: 0; transform: translateY(0) scale(0.8); }
-      20% { opacity: 0.6; transform: translateY(-10px) scale(1); }
-      40% { opacity: 0; transform: translateY(-20px) scale(1.1); }
-    }
-
-    /* === GREETING === */
-    .greeting {
-      text-align: center;
-      font-size: 1.1rem;
-      color: var(--text);
-      margin-bottom: 2rem;
-      padding: 1rem 1.5rem;
-      background: linear-gradient(135deg, rgba(255,215,0,0.08), rgba(255,110,180,0.08));
-      border-radius: 20px;
-      border: 2px solid rgba(255,215,0,0.15);
-      font-weight: 700;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .greeting::before {
-      content: '';
-      position: absolute;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.03) 50%, transparent 60%);
-      animation: shine 3s infinite;
-    }
-
-    @keyframes shine {
-      0% { transform: translateX(-100%) rotate(45deg); }
-      100% { transform: translateX(100%) rotate(45deg); }
-    }
-
-    .greeting span { color: var(--anime-gold); }
-
-    /* === FILTERS === */
-    .filters {
-      display: flex;
-      justify-content: center;
-      gap: 0.5rem;
-      margin-bottom: 2rem;
-      flex-wrap: wrap;
-    }
-
-    .filter-btn {
-      background: var(--card);
-      border: 2px solid transparent;
-      color: var(--text-sub);
-      padding: 0.5rem 1.2rem;
-      border-radius: 2rem;
-      cursor: pointer;
-      font-size: 0.85rem;
-      font-family: 'Nunito', sans-serif;
-      font-weight: 700;
-      transition: all 0.3s;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .filter-btn:hover {
-      background: var(--card-hover);
-      color: var(--text);
-      transform: scale(1.05);
-    }
-
-    .filter-btn:active {
-      animation: btn-smash 0.3s ease;
-    }
-
-    @keyframes btn-smash {
-      0% { transform: scale(1.05); }
-      50% { transform: scale(0.9); }
-      100% { transform: scale(1.05); }
-    }
-
-    .filter-btn.active {
-      border-color: var(--anime-gold);
-      color: var(--anime-gold);
-      background: rgba(255, 215, 0, 0.1);
-      box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
-    }
-
-    /* === CARD GRID === */
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 1rem;
-    }
-
-    /* === ANIME CARD === */
-    .card {
-      background: var(--card);
-      border: 2px solid var(--border);
-      border-radius: 16px;
-      padding: 1.5rem;
-      cursor: pointer;
-      text-decoration: none;
-      display: block;
-      position: relative;
-      overflow: hidden;
-      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      animation: card-enter 0.5s ease backwards;
-    }
-
-    .card:nth-child(1) { animation-delay: 0.05s; }
-    .card:nth-child(2) { animation-delay: 0.10s; }
-    .card:nth-child(3) { animation-delay: 0.15s; }
-    .card:nth-child(4) { animation-delay: 0.20s; }
-    .card:nth-child(5) { animation-delay: 0.25s; }
-    .card:nth-child(6) { animation-delay: 0.30s; }
-    .card:nth-child(7) { animation-delay: 0.35s; }
-    .card:nth-child(8) { animation-delay: 0.40s; }
-    .card:nth-child(9) { animation-delay: 0.45s; }
-
-    @keyframes card-enter {
-      0% { opacity: 0; transform: translateY(30px) scale(0.9); }
-      100% { opacity: 1; transform: translateY(0) scale(1); }
-    }
-
-    /* Anime impact lines on hover */
-    .card::before {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 0;
-      height: 0;
-      background: radial-gradient(circle, rgba(255,215,0,0.15) 0%, transparent 70%);
-      border-radius: 50%;
-      transition: all 0.4s ease;
-      transform: translate(-50%, -50%);
-      z-index: 0;
-    }
-
-    .card:hover::before {
-      width: 300%;
-      height: 300%;
-    }
-
-    /* Manga effect text on hover */
-    .card::after {
-      content: attr(data-sfx);
-      position: absolute;
-      top: 8px;
-      right: 12px;
-      font-size: 0.7rem;
-      font-weight: 900;
-      color: var(--anime-gold);
-      opacity: 0;
-      transform: scale(0) rotate(-15deg);
-      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      z-index: 2;
-      text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-    }
-
-    .card:hover::after {
-      opacity: 1;
-      transform: scale(1) rotate(-5deg);
-    }
-
-    .card:hover {
-      background: var(--card-hover);
-      transform: translateY(-6px) scale(1.02);
-      box-shadow: 0 15px 40px rgba(0,0,0,0.4), 0 0 20px rgba(255,215,0,0.05);
-      border-color: rgba(255,215,0,0.3);
-    }
-
-    .card:hover .card-icon {
-      animation: icon-anime 0.5s ease;
-    }
-
-    @keyframes icon-anime {
-      0% { transform: scale(1) rotate(0); }
-      25% { transform: scale(1.3) rotate(-10deg); }
-      50% { transform: scale(0.9) rotate(5deg); }
-      75% { transform: scale(1.15) rotate(-3deg); }
-      100% { transform: scale(1.1) rotate(0); }
-    }
-
-    .card-top {
-      display: flex;
-      align-items: center;
-      gap: 0.85rem;
-      margin-bottom: 0.8rem;
-      position: relative;
-      z-index: 1;
-    }
-
-    .card-icon {
-      font-size: 2rem;
-      width: 3.2rem;
-      height: 3.2rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 14px;
-      flex-shrink: 0;
-      transition: transform 0.3s;
-    }
-
-    .card-icon.infra { background: rgba(255, 184, 110, 0.2); }
-    .card-icon.media { background: rgba(255, 110, 180, 0.2); }
-    .card-icon.dev { background: rgba(110, 198, 255, 0.2); }
-
-    .card-name {
-      font-size: 1.15rem;
-      font-weight: 800;
-      color: var(--text);
-    }
-
-    .card-domain {
-      font-size: 0.8rem;
-      color: var(--cyan);
-      font-family: 'SF Mono', 'Fira Code', monospace;
-    }
-
-    .card-desc {
-      color: var(--text-sub);
-      font-size: 0.88rem;
-      line-height: 1.5;
-      margin-bottom: 0.8rem;
-      position: relative;
-      z-index: 1;
-    }
-
-    .card-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: relative;
-      z-index: 1;
-    }
-
-    .card-route {
-      font-size: 0.68rem;
-      color: var(--text-dim);
-      font-family: 'SF Mono', 'Fira Code', monospace;
-      max-width: 70%;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .tag {
-      font-size: 0.65rem;
-      padding: 0.2rem 0.6rem;
-      border-radius: 2rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .tag-infra { background: rgba(255,184,110,0.2); color: var(--orange); }
-    .tag-media { background: rgba(255,110,180,0.2); color: var(--pink); }
-    .tag-dev { background: rgba(110,198,255,0.2); color: var(--blue); }
-
-    /* === ANIME REACTION POPUP === */
-    .reaction {
-      position: fixed;
-      z-index: 1000;
-      font-size: 3rem;
-      pointer-events: none;
-      animation: reaction-pop 1s ease-out forwards;
-    }
-
-    @keyframes reaction-pop {
-      0% { transform: scale(0) translateY(0); opacity: 1; }
-      30% { transform: scale(1.5) translateY(-20px); opacity: 1; }
-      100% { transform: scale(0.5) translateY(-80px); opacity: 0; }
-    }
-
-    /* === COMBO COUNTER === */
-    .combo {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 100;
-      text-align: right;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-
-    .combo.show { opacity: 1; }
-
-    .combo-count {
-      font-size: 3rem;
-      font-weight: 900;
-      color: var(--anime-gold);
-      text-shadow: 0 0 20px rgba(255,215,0,0.5), 2px 2px 0 rgba(0,0,0,0.3);
-      line-height: 1;
-    }
-
-    .combo-label {
-      font-size: 0.8rem;
-      color: var(--text-sub);
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-    }
-
-    .combo-count.anime-hit {
-      animation: combo-hit 0.3s ease;
-    }
-
-    @keyframes combo-hit {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.5); }
-      100% { transform: scale(1); }
-    }
-
-    /* === TABS === */
-    .tabs {
-      display: flex;
-      justify-content: center;
-      gap: 0;
-      margin-bottom: 2rem;
-    }
-
-    .tab-btn {
-      background: var(--bg2);
-      border: 2px solid var(--border);
-      color: var(--text-dim);
-      padding: 0.7rem 2rem;
-      cursor: pointer;
-      font-size: 0.95rem;
-      font-family: 'Nunito', sans-serif;
-      font-weight: 800;
-      transition: all 0.3s;
-    }
-
-    .tab-btn:first-child { border-radius: 12px 0 0 12px; }
-    .tab-btn:last-child { border-radius: 0 12px 12px 0; }
-    .tab-btn:not(:last-child) { border-right: none; }
-
-    .tab-btn:hover {
-      color: var(--text);
-      background: var(--card);
-    }
-
-    .tab-btn.active {
-      background: var(--card);
-      color: var(--anime-gold);
-      border-color: var(--anime-gold);
-      box-shadow: 0 0 15px rgba(255, 215, 0, 0.15);
-    }
-
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-
-    /* === HISTORY === */
-    .history-day {
-      margin-bottom: 1.5rem;
-      animation: card-enter 0.4s ease backwards;
-    }
-
-    .history-date {
-      font-size: 0.85rem;
-      font-weight: 800;
-      color: var(--anime-gold);
-      margin-bottom: 0.6rem;
-      padding-left: 0.5rem;
-      border-left: 3px solid var(--anime-gold);
-    }
-
-    .history-item {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 0.8rem 1rem;
-      margin-bottom: 0.5rem;
-      display: flex;
-      align-items: flex-start;
-      gap: 0.7rem;
-      transition: all 0.2s;
-    }
-
-    .history-item:hover {
-      background: var(--card-hover);
-      border-color: rgba(255,215,0,0.2);
-      transform: translateX(4px);
-    }
-
-    .history-badge {
-      font-size: 0.6rem;
-      font-weight: 800;
-      padding: 0.15rem 0.5rem;
-      border-radius: 1rem;
-      text-transform: uppercase;
-      white-space: nowrap;
-      margin-top: 0.15rem;
-    }
-
-    .badge-add { background: rgba(110,255,160,0.15); color: var(--green); }
-    .badge-fix { background: rgba(110,198,255,0.15); color: var(--blue); }
-    .badge-remove { background: rgba(255,110,110,0.15); color: var(--red); }
-    .badge-change { background: rgba(255,184,110,0.15); color: var(--orange); }
-
-    .history-text h4 {
-      font-size: 0.9rem;
-      font-weight: 700;
-      color: var(--text);
-      margin-bottom: 0.15rem;
-    }
-
-    .history-text p {
-      font-size: 0.78rem;
-      color: var(--text-dim);
-      line-height: 1.4;
-    }
-
-    /* === ARCHITECTURE === */
-    .arch-section {
-      margin-top: 2.5rem;
-    }
-
-    .arch-title {
-      font-size: 0.95rem;
-      font-weight: 800;
-      color: var(--text-sub);
-      text-align: center;
-      margin-bottom: 1rem;
-      cursor: pointer;
-      user-select: none;
-      transition: all 0.3s;
-    }
-
-    .arch-title:hover {
-      color: var(--anime-gold);
-      transform: scale(1.02);
-    }
-
-    .arch-box {
-      background: var(--bg2);
-      border: 2px solid var(--border);
-      border-radius: 16px;
-      padding: 1.5rem;
-      font-family: 'SF Mono', 'Fira Code', monospace;
-      font-size: 0.75rem;
-      color: var(--text-sub);
-      line-height: 1.8;
-      white-space: pre;
-      overflow-x: auto;
-      display: none;
-    }
-
-    .arch-box.show {
-      display: block;
-      animation: arch-slide 0.4s ease;
-    }
-
-    @keyframes arch-slide {
-      0% { opacity: 0; transform: translateY(-10px); }
-      100% { opacity: 1; transform: translateY(0); }
-    }
-
-    /* === FOOTER === */
-    .footer {
-      text-align: center;
-      margin-top: 2.5rem;
-      padding: 1.5rem 0;
-      color: var(--text-dim);
-      font-size: 0.8rem;
-    }
-
-    .footer .devices {
-      display: flex;
-      justify-content: center;
-      gap: 1.5rem;
-      margin-bottom: 0.8rem;
-      flex-wrap: wrap;
-    }
-
-    .footer .device {
-      display: flex;
-      align-items: center;
-      gap: 0.3rem;
-      color: var(--text-sub);
-      font-weight: 600;
-    }
-
-    .dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: var(--green);
-      box-shadow: 0 0 10px rgba(110, 255, 160, 0.5);
-      animation: pulse 2s ease-in-out infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; box-shadow: 0 0 10px rgba(110, 255, 160, 0.5); }
-      50% { opacity: 0.5; box-shadow: 0 0 5px rgba(110, 255, 160, 0.2); }
-    }
-
-    /* === EASTER EGG KONAMI === */
-    .secret-mode body {
-      animation: rainbow-bg 5s linear infinite;
-    }
-
-    @keyframes rainbow-bg {
-      0% { filter: hue-rotate(0deg); }
-      100% { filter: hue-rotate(360deg); }
-    }
-
-    @media (max-width: 640px) {
-      .container { padding: 0.8rem; }
-      .header { padding: 1rem 0; margin-bottom: 1rem; }
-      .header-emoji { font-size: 3rem; }
-      .header h1 { font-size: 1.8rem; }
-      .header p { font-size: 0.85rem; }
-      .greeting { font-size: 0.95rem; padding: 0.8rem 1rem; margin-bottom: 1rem; }
-      .tabs { margin-bottom: 1rem; }
-      .tab-btn { padding: 0.5rem 1.2rem; font-size: 0.85rem; }
-      .filters { gap: 0.3rem; margin-bottom: 1rem; }
-      .filter-btn { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
-      .grid { grid-template-columns: 1fr; gap: 0.7rem; }
-      .card { padding: 1rem; border-radius: 12px; }
-      .card-name { font-size: 1rem; }
-      .card-desc { font-size: 0.82rem; }
-      .arch-box { font-size: 0.55rem; padding: 1rem; line-height: 1.6; }
-      .menacing { display: none; }
-      .combo { top: 10px; right: 10px; }
-      .combo-count { font-size: 2rem; }
-      .history-item { padding: 0.6rem 0.8rem; }
-      .history-text h4 { font-size: 0.85rem; }
-      .history-text p { font-size: 0.75rem; }
-      .footer { margin-top: 1.5rem; }
-      .footer .devices { gap: 0.8rem; }
-    }
-  </style>
-</head>
-<body>
-
-  <!-- JoJo menacing -->
-  <div class="menacing" style="right:5%;top:15%">ゴゴゴ</div>
-  <div class="menacing" style="left:3%;top:40%">ドドド</div>
-  <div class="menacing" style="right:8%;bottom:25%">ゴゴゴ</div>
-
-  <!-- Speed lines -->
-  <div class="speed-lines" id="speed-lines"></div>
-
-  <!-- Particles -->
-  <div class="particles" id="particles"></div>
-
-  <!-- Combo counter -->
-  <div class="combo" id="combo">
-    <div class="combo-count" id="combo-count">0</div>
-    <div class="combo-label">COMBO! ✨</div>
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="홈" active="home">
+  <!-- Greeting banner -->
+  <div id="greeting" class="text-center py-3 px-5 mb-8 rounded-2xl bg-accent/8 border border-accent/15 text-lg font-bold text-text"></div>
+
+  <!-- Filter pills -->
+  <div class="flex justify-center gap-2 mb-6 flex-wrap" id="filters">
+    <button class="filter-pill active" data-filter="all">전체</button>
+    <button class="filter-pill" data-filter="infra">인프라</button>
+    <button class="filter-pill" data-filter="media">미디어</button>
+    <button class="filter-pill" data-filter="dev">개발</button>
   </div>
 
-  <div class="container">
-    <div class="header">
-      <span class="header-emoji">🌙</span>
-      <h1>aurore.work</h1>
-      <p>우리집 서비스 현황판</p>
-    </div>
+  <!-- Service cards grid -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-12" id="services"></div>
 
-    <div class="greeting" id="greeting"></div>
-
-    <div class="tabs">
-      <button class="tab-btn active" data-tab="services">🏠 서비스</button>
-      <button class="tab-btn" data-tab="history">📜 작업 히스토리</button>
-      <a href="/work" class="tab-btn" style="text-decoration:none;">💼 업무</a>
-      <a href="/stats" class="tab-btn" style="text-decoration:none;">🤝 싱크</a>
-      <a href="/weather" class="tab-btn" style="text-decoration:none;">🌤️ 날씨</a>
-    </div>
-
-    <div class="tab-content active" id="tab-services">
-      <div class="filters">
-        <button class="filter-btn active" data-filter="all">🌈 전체</button>
-        <button class="filter-btn" data-filter="infra">⚙️ 인프라</button>
-        <button class="filter-btn" data-filter="media">🎵 미디어</button>
-        <button class="filter-btn" data-filter="dev">💻 개발</button>
-      </div>
-
-      <div class="grid" id="services"></div>
-    </div>
-
-    <div class="tab-content" id="tab-history">
-      <div id="history"></div>
-    </div>
-
-    <div class="arch-section">
-      <div class="arch-title" id="arch-toggle">📐 네트워크 구조 보기 ▾</div>
-      <div class="arch-box" id="arch-box">
-🌍 외부 요청
-  │
-  ▼
-☁️  Cloudflare DNS (aurore.work → 공인 IP)
-  │
-  ▼
-🔀 TP-Link ER7206 라우터 (:443 포워딩)
-  │
-  ▼
-💾 Synology DS720+ (NAS)
-  ├── nginx 리버스 프록시 (SSL *.aurore.work)
-  │   ├── nas.     → DSM :5000
-  │   ├── plex.    → Plex Docker :32400
-  │   ├── photos.  → DSM /photo
-  │   ├── term.    → Mac :7681
-  │   ├── router.  → 라우터 :80
-  │   └── home.    → home-dash Docker :80
-  │
-  └── Docker 컨테이너
-      ├── 🎬 Plex
-      ├── 📡 Autoscan
-      ├── 📁 pure-ftpd
-      ├── 🔄 Watchtower
-      └── 🏠 home-dash (이 페이지!)
-
-🔒 CF Tunnel 경로 (NAS 무관, Mac 직통)
-  ├── max.aurore.work  → Mac ttyd :7681
-  └── ssh.aurore.work  → Mac SSH :22</div>
-    </div>
-
-    <div class="footer">
-      <div class="devices">
-        <div class="device"><span class="dot"></span> NAS DS720+</div>
-        <div class="device"><span class="dot"></span> Mac Studio</div>
-        <div class="device"><span class="dot"></span> MacBook Pro</div>
-        <div class="device"><span class="dot"></span> ER7206</div>
-      </div>
-      <p>Updated: <span id="updated"></span></p>
-    </div>
+  <!-- History section -->
+  <div class="mb-12">
+    <h2 class="text-2xl font-black mb-6 text-text">작업 히스토리</h2>
+    <div id="history"></div>
   </div>
 
-  <script>
-    const categoryLabels = { infra: '인프라', media: '미디어', dev: '개발' };
+  <!-- Footer: device status -->
+  <footer class="flex justify-center gap-6 flex-wrap py-6 border-t border-border">
+    <div class="flex items-center gap-2 text-sm font-bold text-sub">
+      <span class="w-2 h-2 rounded-full bg-green shadow-[0_0_8px_var(--color-green)] animate-pulse"></span>
+      NAS DS720+
+    </div>
+    <div class="flex items-center gap-2 text-sm font-bold text-sub">
+      <span class="w-2 h-2 rounded-full bg-green shadow-[0_0_8px_var(--color-green)] animate-pulse"></span>
+      Mac Studio
+    </div>
+    <div class="flex items-center gap-2 text-sm font-bold text-sub">
+      <span class="w-2 h-2 rounded-full bg-green shadow-[0_0_8px_var(--color-green)] animate-pulse"></span>
+      M1 mini
+    </div>
+    <div class="flex items-center gap-2 text-sm font-bold text-sub">
+      <span class="w-2 h-2 rounded-full bg-green shadow-[0_0_8px_var(--color-green)] animate-pulse"></span>
+      ER7206
+    </div>
+  </footer>
+</Base>
 
-    // Anime-style SFX for each card
-    const sfxList = ['ドン！', 'バーン！', 'キター！', 'ズバッ！', 'ワクワク', 'スゴイ！', 'ヨシ！', 'イクゾ！', 'ナイス！'];
+<style is:inline>
+  @keyframes card-in {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
 
-    // Anime reaction emojis
-    const reactions = ['(≧▽≦)', '(ﾉ◕ヮ◕)ﾉ✧', '(☆▽☆)', 'ヽ(>∀<☆)ノ', '(*≧ω≦)', '(ノ´ヮ`)ノ*:・゚✧', '٩(◕‿◕｡)۶', '(ﾉ´∀`)ﾉ'];
+<script>
+  // --- Greeting ---
+  const greetings: Record<string, string[]> = {
+    morning: ['おはよう、좋은 아침이야', '새로운 하루, 시작하자', '아침 커피 한 잔의 여유'],
+    afternoon: ['こんにちは、오후도 힘내자', '점심 먹었어? 파이팅', '한낮의 집중 타임'],
+    evening: ['おつかれ、오늘도 고생했어', '저녁 노을이 예쁜 시간', '하루 마무리, 잘 했어'],
+    night: ['おやすみ、편한 밤 되길', '밤의 고요함 속에서', '오늘도 수고했어, 좋은 꿈'],
+  };
+  const h = new Date().getHours();
+  const period = h >= 6 && h < 12 ? 'morning' : h < 17 ? 'afternoon' : h < 21 ? 'evening' : 'night';
+  const msgs = greetings[period];
+  const greetEl = document.getElementById('greeting');
+  if (greetEl) greetEl.textContent = msgs[Math.floor(Math.random() * msgs.length)];
 
-    const greetings = {
-      morning: [
-        '좋은 아침이에요! おはよう～☀️',
-        '오늘도 화이팅! ファイト！💪',
-        '커피 한 잔 어때요? ☕ いただきます！'
-      ],
-      afternoon: [
-        '좋은 오후에요! こんにちは～🌤️',
-        '점심은 드셨나요? 🍱 もぐもぐ',
-        '오후도 파이팅! がんばれ！✨'
-      ],
-      evening: [
-        '좋은 저녁이에요! こんばんは～🌙',
-        '오늘 하루 수고했어요! お疲れ様！💜',
-        '맛있는 저녁 드세요! 🍽️ うまい！'
-      ],
-      night: [
-        '아직 안 자요? まだ起きてる？🦉',
-        '푹 자요～ おやすみ！🌙',
-        '오늘도 수고했어요! お疲れ様でした！💤'
-      ]
-    };
+  // --- Types ---
+  interface Service {
+    name: string;
+    domain: string;
+    icon: string;
+    description: string;
+    route: string;
+    category: string;
+  }
 
-    function getGreeting() {
-      const h = new Date().getHours();
-      let period;
-      if (h >= 6 && h < 12) period = 'morning';
-      else if (h >= 12 && h < 18) period = 'afternoon';
-      else if (h >= 18 && h < 23) period = 'evening';
-      else period = 'night';
-      const msgs = greetings[period];
-      return msgs[Math.floor(Math.random() * msgs.length)];
-    }
+  interface HistoryEntry {
+    type: string;
+    title: string;
+    desc: string;
+  }
 
-    // === TIME-BASED THEME ===
-    const themes = {
-      morning: {
-        emoji: '☀️',
-        vars: {
-          '--bg': '#fef9ef', '--bg2': '#fff5e6', '--card': '#fffbf5', '--card-hover': '#fff8ee',
-          '--border': '#f0d9b5', '--text': '#3a2e1a', '--text-sub': '#7a6e5a', '--text-dim': '#b0a490',
-          '--purple': '#c59cff', '--pink': '#ff9eb3', '--blue': '#7ec8e3', '--green': '#5ecf7a',
-          '--orange': '#ff9940', '--yellow': '#ffcc00', '--red': '#ff6e6e', '--cyan': '#00b4a0',
-          '--anime-gold': '#ff9900'
-        },
-        gradient: 'linear-gradient(135deg, #ff9900, #ff6eb4, #7ec8e3, #ffcc00)',
-        particles: ['🌸', '☀️', '🌤️', '🐦', '🌻', '☕', '🍞', '🌈', '🦋', '✨'],
-        speedLineColor: '#ff9900'
-      },
-      afternoon: {
-        emoji: '🌤️',
-        vars: {
-          '--bg': '#f0f4ff', '--bg2': '#e5edff', '--card': '#f8faff', '--card-hover': '#f0f5ff',
-          '--border': '#c5d5f0', '--text': '#1a2a4a', '--text-sub': '#5a6a8a', '--text-dim': '#90a0b8',
-          '--purple': '#8b6cf7', '--pink': '#ff7eb3', '--blue': '#4a9eff', '--green': '#3ecf8e',
-          '--orange': '#ff8c42', '--yellow': '#ffc107', '--red': '#ff5252', '--cyan': '#00d4aa',
-          '--anime-gold': '#4a9eff'
-        },
-        gradient: 'linear-gradient(135deg, #4a9eff, #8b6cf7, #ff7eb3, #3ecf8e)',
-        particles: ['⚡', '💻', '☁️', '🚀', '💡', '🎯', '📱', '🎮', '✨', '🌊'],
-        speedLineColor: '#4a9eff'
-      },
-      evening: {
-        emoji: '🌅',
-        vars: {
-          '--bg': '#1a1020', '--bg2': '#251830', '--card': '#201535', '--card-hover': '#2a1d40',
-          '--border': '#4a2a6c', '--text': '#f0e8ff', '--text-sub': '#c9b8e0', '--text-dim': '#8a7aa0',
-          '--purple': '#d4a0ff', '--pink': '#ff7eb3', '--blue': '#7ec8e3', '--green': '#7effa0',
-          '--orange': '#ffb86e', '--yellow': '#ffe66e', '--red': '#ff6e6e', '--cyan': '#00f5d4',
-          '--anime-gold': '#ff8c42'
-        },
-        gradient: 'linear-gradient(135deg, #ff8c42, #ff6eb4, #d4a0ff, #7ec8e3)',
-        particles: ['🌅', '🌇', '🍷', '💜', '🌆', '🎵', '🦊', '🔮', '✨', '🌙'],
-        speedLineColor: '#ff8c42'
-      },
-      night: {
-        emoji: '🌙',
-        vars: {
-          '--bg': '#0f0e17', '--bg2': '#1a1a2e', '--card': '#16213e', '--card-hover': '#1a2847',
-          '--border': '#2a3a5c', '--text': '#fffffe', '--text-sub': '#c9d1d9', '--text-dim': '#8b949e',
-          '--purple': '#c59cff', '--pink': '#ff7eb3', '--blue': '#7ec8e3', '--green': '#7effa0',
-          '--orange': '#ffb86e', '--yellow': '#ffe66e', '--red': '#ff6e6e', '--cyan': '#00f5d4',
-          '--anime-gold': '#ffd700'
-        },
-        gradient: 'linear-gradient(135deg, #ffd700, #ff6eb4, #7ec8e3, #c59cff)',
-        particles: ['✨', '💜', '🌙', '⭐', '💫', '🔮', '🦋', '🌸', '⚡', '🎌'],
-        speedLineColor: 'white'
-      }
-    };
+  interface HistoryDay {
+    date: string;
+    entries: HistoryEntry[];
+  }
 
-    function getTimePeriod() {
-      const h = new Date().getHours();
-      if (h >= 6 && h < 12) return 'morning';
-      if (h >= 12 && h < 18) return 'afternoon';
-      if (h >= 18 && h < 23) return 'evening';
-      return 'night';
-    }
+  // --- Category colors ---
+  const catColors: Record<string, { bg: string; text: string; iconBg: string }> = {
+    infra: { bg: 'bg-orange/10', text: 'text-orange', iconBg: 'bg-orange/15' },
+    media: { bg: 'bg-pink/10', text: 'text-pink', iconBg: 'bg-pink/15' },
+    dev:   { bg: 'bg-blue/10', text: 'text-blue', iconBg: 'bg-blue/15' },
+  };
 
-    const period = getTimePeriod();
-    const theme = themes[period];
-    const root = document.documentElement;
-    Object.entries(theme.vars).forEach(([k, v]) => root.style.setProperty(k, v));
-    document.querySelector('.header-emoji').textContent = theme.emoji;
-    document.querySelector('.header h1').style.background = theme.gradient;
-    document.querySelector('.header h1').style.backgroundSize = '300% 300%';
-    document.querySelector('.header h1').style.webkitBackgroundClip = 'text';
-    document.querySelector('.header h1').style.webkitTextFillColor = 'transparent';
-    document.querySelector('.header h1').style.backgroundClip = 'text';
-    document.querySelector('.header h1').style.animation = 'gradient-shift 4s ease infinite';
+  const catLabels: Record<string, string> = { infra: '인프라', media: '미디어', dev: '개발' };
 
-    document.getElementById('greeting').innerHTML = `<span>${getGreeting()}</span>`;
+  // --- Badge colors ---
+  const badgeStyles: Record<string, { bg: string; text: string; label: string }> = {
+    add:    { bg: 'bg-green/15', text: 'text-green', label: 'NEW' },
+    fix:    { bg: 'bg-blue/15', text: 'text-blue', label: 'FIX' },
+    remove: { bg: 'bg-red/15', text: 'text-red', label: 'DEL' },
+    change: { bg: 'bg-orange/15', text: 'text-orange', label: 'CHG' },
+  };
 
-    // === Speed lines ===
-    const slContainer = document.getElementById('speed-lines');
-    for (let i = 0; i < 30; i++) {
-      const line = document.createElement('div');
-      line.className = 'speed-line';
-      const angle = Math.random() * 360;
-      const x = Math.random() * 100;
-      const y = Math.random() * 100;
-      line.style.left = x + '%';
-      line.style.top = y + '%';
-      line.style.width = (50 + Math.random() * 150) + 'px';
-      line.style.height = '1px';
-      line.style.background = theme.speedLineColor;
-      line.style.transform = `rotate(${angle}deg)`;
-      slContainer.appendChild(line);
-    }
+  // --- Gate token for Max/Claude ---
+  const GATE_KEY = 'e3087205509900d6c862f806ccd58d1d';
 
-    // === Particles ===
-    const emojis = theme.particles;
-    const pContainer = document.getElementById('particles');
-    for (let i = 0; i < 18; i++) {
-      const p = document.createElement('div');
-      p.className = 'particle';
-      p.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-      p.style.left = Math.random() * 100 + '%';
-      p.style.animationDuration = (12 + Math.random() * 18) + 's';
-      p.style.animationDelay = (-Math.random() * 20) + 's';
-      p.style.fontSize = (0.8 + Math.random() * 1) + 'rem';
-      pContainer.appendChild(p);
-    }
+  async function hmacToken(): Promise<string> {
+    const enc = new TextEncoder();
+    const ts = Math.floor(Date.now() / 30000).toString();
+    const key = await crypto.subtle.importKey('raw', enc.encode(GATE_KEY), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+    const sig = await crypto.subtle.sign('HMAC', key, enc.encode(ts));
+    const token = Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 16);
+    return `?t=${token}&ts=${ts}`;
+  }
 
-    // === Sparkle on click ===
-    document.addEventListener('click', (e) => {
-      for (let i = 0; i < 5; i++) {
-        const sparkle = document.createElement('div');
-        sparkle.className = 'sparkle';
-        sparkle.textContent = ['✦', '✧', '⚡', '★', '✿'][Math.floor(Math.random() * 5)];
-        sparkle.style.left = (e.clientX + (Math.random() - 0.5) * 60) + 'px';
-        sparkle.style.top = (e.clientY + (Math.random() - 0.5) * 60) + 'px';
-        sparkle.style.color = ['#ffd700', '#ff6eb4', '#7ec8e3', '#c59cff', '#7effa0'][Math.floor(Math.random() * 5)];
-        document.body.appendChild(sparkle);
-        setTimeout(() => sparkle.remove(), 600);
-      }
-    });
+  // --- Render services ---
+  function renderServices(services: Service[], filter = 'all') {
+    const grid = document.getElementById('services');
+    if (!grid) return;
+    grid.innerHTML = '';
+    const filtered = filter === 'all' ? services : services.filter(s => s.category === filter);
 
-    // === Combo counter ===
-    let combo = 0;
-    let comboTimer = null;
-    const comboEl = document.getElementById('combo');
-    const comboCountEl = document.getElementById('combo-count');
+    filtered.forEach((s, i) => {
+      const c = catColors[s.category] || catColors.infra;
+      const proto = s.domain.startsWith('ftp.') ? 'ftp' : 'https';
+      const href = s.domain.startsWith('ssh.') ? '#' : `${proto}://${s.domain}`;
+      const isGated = s.domain.startsWith('max.') || s.domain.startsWith('claude.');
 
-    function addCombo(e) {
-      combo++;
-      comboCountEl.textContent = combo;
-      comboEl.classList.add('show');
-      comboCountEl.classList.remove('anime-hit');
-      void comboCountEl.offsetWidth;
-      comboCountEl.classList.add('anime-hit');
+      const card = document.createElement('a');
+      card.href = href;
+      card.target = s.domain.startsWith('ssh.') ? '_self' : '_blank';
+      card.rel = 'noopener';
+      card.className = 'bg-card border border-border rounded-2xl p-6 block hover:border-accent/30 transition-all hover:-translate-y-1';
+      card.style.animation = `card-in 0.4s ease ${i * 0.05}s both`;
 
-      // Anime reaction at milestones
-      if (combo % 5 === 0) {
-        const r = document.createElement('div');
-        r.className = 'reaction';
-        r.textContent = reactions[Math.floor(Math.random() * reactions.length)];
-        r.style.left = (e ? e.clientX : window.innerWidth / 2) - 30 + 'px';
-        r.style.top = (e ? e.clientY : window.innerHeight / 2) + 'px';
-        r.style.color = ['#ffd700', '#ff6eb4', '#7ec8e3'][Math.floor(Math.random() * 3)];
-        document.body.appendChild(r);
-        setTimeout(() => r.remove(), 1000);
+      if (isGated) {
+        card.dataset.gated = '1';
       }
 
-      clearTimeout(comboTimer);
-      comboTimer = setTimeout(() => {
-        combo = 0;
-        comboEl.classList.remove('show');
-      }, 3000);
-    }
-
-    // === Services ===
-    async function loadServices() {
-      const res = await fetch('services.json');
-      const services = await res.json();
-      render(services);
-      setupFilters(services);
-    }
-
-    function render(services, filter = 'all') {
-      const grid = document.getElementById('services');
-      grid.innerHTML = '';
-      const filtered = filter === 'all' ? services : services.filter(s => s.category === filter);
-      filtered.forEach((s, i) => {
-        const proto = s.domain.startsWith('ftp.') ? 'ftp' : 'https';
-        const needsGate = s.domain.startsWith('max.') || s.domain.startsWith('claude.');
-        const href = s.domain.startsWith('ssh.') ? '#' : `${proto}://${s.domain}`;
-        const card = document.createElement('a');
-        card.className = 'card';
-        card.href = href;
-        card.target = s.domain.startsWith('ssh.') ? '_self' : '_blank';
-        card.rel = 'noopener';
-        card.setAttribute('data-sfx', sfxList[i % sfxList.length]);
-
-        card.addEventListener('mouseenter', (e) => addCombo(e));
-
-        card.innerHTML = `
-          <div class="card-top">
-            <div class="card-icon ${s.category}">${s.icon}</div>
-            <div>
-              <div class="card-name">${s.name}</div>
-              <div class="card-domain">${s.domain}</div>
-            </div>
+      card.innerHTML = `
+        <div class="flex items-center gap-4 mb-3">
+          <div class="text-4xl w-14 h-14 flex items-center justify-center rounded-xl ${c.iconBg} shrink-0">${s.icon}</div>
+          <div class="min-w-0">
+            <div class="text-xl font-black text-text truncate">${s.name}</div>
+            <div class="text-xs font-mono text-cyan truncate">${s.domain}</div>
           </div>
-          <div class="card-desc">${s.description}</div>
-          <div class="card-footer">
-            <span class="card-route">${s.route}</span>
-            <span class="tag tag-${s.category}">${categoryLabels[s.category]}</span>
+        </div>
+        <p class="text-sub text-sm leading-relaxed mb-3">${s.description}</p>
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-mono text-dim truncate max-w-[65%]">${s.route}</span>
+          <span class="text-xs font-extrabold px-2.5 py-0.5 rounded-full ${c.bg} ${c.text}">${catLabels[s.category]}</span>
+        </div>
+      `;
+
+      grid.appendChild(card);
+    });
+  }
+
+  // --- Render history ---
+  function renderHistory(days: HistoryDay[]) {
+    const container = document.getElementById('history');
+    if (!container) return;
+    container.innerHTML = '';
+
+    days.forEach(day => {
+      const dayEl = document.createElement('div');
+      dayEl.className = 'mb-6';
+
+      const dateHeader = document.createElement('div');
+      dateHeader.className = 'text-sm font-black text-gold mb-3 pl-3 border-l-3 border-gold';
+      dateHeader.textContent = day.date;
+      dayEl.appendChild(dateHeader);
+
+      day.entries.forEach(entry => {
+        const badge = badgeStyles[entry.type] || badgeStyles.change;
+        const item = document.createElement('div');
+        item.className = 'bg-card border border-border rounded-xl px-4 py-3 mb-2 flex items-start gap-3 hover:border-accent/20 transition-all hover:translate-x-1';
+        item.innerHTML = `
+          <span class="text-[0.65rem] font-extrabold px-2 py-0.5 rounded-full ${badge.bg} ${badge.text} shrink-0 mt-0.5">${badge.label}</span>
+          <div class="min-w-0">
+            <div class="text-sm font-bold text-text">${entry.title}</div>
+            <div class="text-xs text-dim leading-relaxed">${entry.desc}</div>
           </div>
         `;
-        grid.appendChild(card);
+        dayEl.appendChild(item);
       });
-    }
 
-    function setupFilters(services) {
-      document.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          render(services, btn.dataset.filter);
-          addCombo(e);
-        });
-      });
-    }
+      container.appendChild(dayEl);
+    });
+  }
 
-    // === Tabs ===
-    document.querySelectorAll('.tab-btn').forEach(btn => {
+  // --- Filter pills ---
+  function setupFilters(services: Service[]) {
+    document.querySelectorAll('.filter-pill').forEach(btn => {
       btn.addEventListener('click', () => {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-        document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
-        if (btn.dataset.tab === 'history') loadHistory();
+        renderServices(services, (btn as HTMLElement).dataset.filter || 'all');
       });
     });
+  }
 
-    // === History ===
-    const badgeLabels = { add: 'NEW', fix: 'FIX', remove: 'DEL', change: 'CHG' };
-    async function loadHistory() {
-      const container = document.getElementById('history');
-      if (container.children.length > 0) return;
-      try {
-        const res = await fetch('history.json');
-        const days = await res.json();
-        days.forEach((day, di) => {
-          const dayEl = document.createElement('div');
-          dayEl.className = 'history-day';
-          dayEl.style.animationDelay = (di * 0.1) + 's';
-          dayEl.innerHTML = `<div class="history-date">${day.date}</div>`;
-          day.entries.forEach(e => {
-            const item = document.createElement('div');
-            item.className = 'history-item';
-            item.innerHTML = `
-              <span class="history-badge badge-${e.type}">${badgeLabels[e.type] || e.type}</span>
-              <div class="history-text">
-                <h4>${e.title}</h4>
-                <p>${e.desc}</p>
-              </div>
-            `;
-            dayEl.appendChild(item);
-          });
-          container.appendChild(dayEl);
-        });
-      } catch (err) {
-        container.innerHTML = '<p style="color:var(--text-dim);text-align:center;">히스토리를 불러올 수 없습니다.</p>';
-      }
+  // --- Gate click handler ---
+  document.addEventListener('click', async (e) => {
+    const a = (e.target as HTMLElement).closest('a[data-gated]');
+    if (!a) return;
+    e.preventDefault();
+    const href = a.getAttribute('href');
+    if (!href) return;
+    const qs = await hmacToken();
+    window.open(href + qs, '_blank');
+  });
+
+  // --- Load data ---
+  async function init() {
+    try {
+      const [sRes, hRes] = await Promise.all([
+        fetch('services.json'),
+        fetch('history.json'),
+      ]);
+      const services: Service[] = await sRes.json();
+      const history: HistoryDay[] = await hRes.json();
+      renderServices(services);
+      setupFilters(services);
+      renderHistory(history);
+    } catch (err) {
+      console.error('Failed to load data:', err);
     }
+  }
 
-    // === Architecture toggle ===
-    document.getElementById('arch-toggle').addEventListener('click', () => {
-      const box = document.getElementById('arch-box');
-      const toggle = document.getElementById('arch-toggle');
-      box.classList.toggle('show');
-      toggle.textContent = box.classList.contains('show')
-        ? '📐 네트워크 구조 접기 ▴'
-        : '📐 네트워크 구조 보기 ▾';
-    });
+  init();
+</script>
 
-    // === Konami Code Easter Egg ===
-    const konamiCode = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
-    let konamiIndex = 0;
-    document.addEventListener('keydown', (e) => {
-      if (e.key === konamiCode[konamiIndex]) {
-        konamiIndex++;
-        if (konamiIndex === konamiCode.length) {
-          document.documentElement.classList.toggle('secret-mode');
-          konamiIndex = 0;
-          // Super reaction
-          for (let i = 0; i < 10; i++) {
-            setTimeout(() => {
-              const r = document.createElement('div');
-              r.className = 'reaction';
-              r.textContent = reactions[Math.floor(Math.random() * reactions.length)];
-              r.style.left = (Math.random() * window.innerWidth) + 'px';
-              r.style.top = (Math.random() * window.innerHeight) + 'px';
-              r.style.fontSize = '4rem';
-              document.body.appendChild(r);
-              setTimeout(() => r.remove(), 1000);
-            }, i * 100);
-          }
-        }
-      } else {
-        konamiIndex = 0;
-      }
-    });
-
-    document.getElementById('updated').textContent = new Date().toLocaleDateString('ko-KR', {
-      year: 'numeric', month: 'long', day: 'numeric'
-    });
-
-    // === Gate token for Max/Claude terminals ===
-    const _gk = 'e3087205509900d6c862f806ccd58d1d';
-    async function _hmac(msg) {
-      const enc = new TextEncoder();
-      const key = await crypto.subtle.importKey('raw', enc.encode(_gk), {name:'HMAC',hash:'SHA-256'}, false, ['sign']);
-      const sig = await crypto.subtle.sign('HMAC', key, enc.encode(msg));
-      return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2,'0')).join('');
-    }
-    document.addEventListener('click', async (e) => {
-      const a = e.target.closest('a.card');
-      if (!a) return;
-      const href = a.getAttribute('href');
-      if (!href) return;
-      const isGated = href.includes('max.aurore.work') || href.includes('claude.aurore.work');
-      if (!isGated) return;
-      e.preventDefault();
-      const ts = Math.floor(Date.now() / 30000).toString();
-      const token = (await _hmac(ts)).slice(0, 16);
-      window.open(href + '?t=' + token + '&ts=' + ts, '_blank');
-    });
-
-    loadServices();
-  </script>
-</body>
-</html>
+<style is:inline>
+  .filter-pill {
+    padding: 0.4rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    border: 1.5px solid transparent;
+    background: var(--color-card);
+    color: var(--color-sub);
+    transition: all 0.2s;
+  }
+  .filter-pill:hover {
+    background: var(--color-card-hover);
+    color: var(--color-text);
+  }
+  .filter-pill.active {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+    background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+  }
+</style>
