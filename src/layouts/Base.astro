@@ -23,6 +23,17 @@ const nav = [
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{title} — aurore.work</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏠</text></svg>">
+  <!-- Theme must run before paint to avoid FOUC -->
+  <script is:inline>
+    (function() {
+      var h = new Date().getHours();
+      var theme = 'theme-night';
+      if (h >= 6 && h < 12) theme = 'theme-morning';
+      else if (h >= 12 && h < 17) theme = 'theme-afternoon';
+      else if (h >= 17 && h < 21) theme = 'theme-evening';
+      document.documentElement.classList.add(theme);
+    })();
+  </script>
 </head>
 <body class="bg-bg text-text font-sans min-h-dvh">
   <!-- Global anime sparkle click -->
@@ -65,19 +76,7 @@ const nav = [
   <!-- Global floating emojis (all pages) -->
   <div class="global-particles" id="global-particles"></div>
 
-  <!-- Theme + anime effects script -->
-  <script is:inline>
-    // === Theme ===
-    (function() {
-      var h = new Date().getHours();
-      var theme = 'theme-night';
-      if (h >= 6 && h < 12) theme = 'theme-morning';
-      else if (h >= 12 && h < 17) theme = 'theme-afternoon';
-      else if (h >= 17 && h < 21) theme = 'theme-evening';
-      document.documentElement.classList.add(theme);
-    })();
-  </script>
-
+  <!-- Anime effects styles & scripts -->
   <style is:inline>
     /* === NAV ANIME === */
     .nav-logo { position: relative; }

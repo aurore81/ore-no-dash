@@ -14,6 +14,22 @@ import Base from '../layouts/Base.astro';
   <!-- Floating particles -->
   <div class="particles" id="particles"></div>
 
+  <!-- Anime mascot (CSS art) -->
+  <div class="anime-mascot" id="mascot">
+    <div class="mascot-body">
+      <div class="mascot-face">
+        <div class="mascot-eye left"></div>
+        <div class="mascot-eye right"></div>
+        <div class="mascot-mouth"></div>
+        <div class="mascot-blush left"></div>
+        <div class="mascot-blush right"></div>
+      </div>
+      <div class="mascot-ear left"></div>
+      <div class="mascot-ear right"></div>
+    </div>
+    <div class="mascot-speech" id="mascot-speech">ようこそ！✨</div>
+  </div>
+
   <!-- Combo counter -->
   <div class="combo" id="combo">
     <div class="combo-count" id="combo-count">0</div>
@@ -273,10 +289,84 @@ import Base from '../layouts/Base.astro';
     0%,100% { opacity: 1; } 50% { opacity: 0.5; }
   }
 
+  /* === ANIME MASCOT (CSS Art) === */
+  .anime-mascot {
+    position: fixed; bottom: 20px; left: 20px; z-index: 50;
+    cursor: pointer; transition: transform 0.3s;
+    animation: mascot-float 4s ease-in-out infinite;
+  }
+  .anime-mascot:hover { transform: scale(1.15) rotate(-5deg); }
+  .anime-mascot:hover .mascot-speech { opacity: 1; transform: translateY(-5px) scale(1); }
+  @keyframes mascot-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+  .mascot-body {
+    width: 60px; height: 60px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--color-pink), var(--color-purple));
+    position: relative;
+    box-shadow: 0 5px 20px color-mix(in srgb, var(--color-pink) 40%, transparent);
+  }
+  .mascot-face { position: absolute; inset: 0; }
+  .mascot-eye {
+    position: absolute; top: 35%; width: 8px; height: 10px;
+    background: white; border-radius: 50%;
+    animation: mascot-blink 4s ease infinite;
+  }
+  .mascot-eye.left { left: 30%; }
+  .mascot-eye.right { right: 30%; }
+  .mascot-eye::after {
+    content: ''; position: absolute; top: 2px; left: 2px;
+    width: 4px; height: 5px; background: #333; border-radius: 50%;
+  }
+  @keyframes mascot-blink {
+    0%, 45%, 55%, 100% { transform: scaleY(1); }
+    50% { transform: scaleY(0.1); }
+  }
+  .mascot-mouth {
+    position: absolute; bottom: 28%; left: 50%; transform: translateX(-50%);
+    width: 12px; height: 6px; border-bottom: 3px solid white;
+    border-radius: 0 0 50% 50%;
+  }
+  .mascot-blush {
+    position: absolute; top: 48%; width: 10px; height: 6px;
+    background: color-mix(in srgb, var(--color-pink) 60%, transparent);
+    border-radius: 50%; opacity: 0.7;
+  }
+  .mascot-blush.left { left: 12%; }
+  .mascot-blush.right { right: 12%; }
+  .mascot-ear {
+    position: absolute; top: -8px; width: 16px; height: 20px;
+    background: linear-gradient(135deg, var(--color-pink), var(--color-purple));
+    border-radius: 50% 50% 0 0;
+  }
+  .mascot-ear.left { left: 8px; transform: rotate(-15deg); }
+  .mascot-ear.right { right: 8px; transform: rotate(15deg); }
+  .mascot-ear::after {
+    content: ''; position: absolute; top: 3px; left: 3px; right: 3px; height: 10px;
+    background: color-mix(in srgb, var(--color-pink) 80%, white);
+    border-radius: 50% 50% 0 0;
+  }
+  .mascot-speech {
+    position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%) translateY(-5px) scale(0.8);
+    background: var(--color-card); border: 2px solid var(--color-gold);
+    border-radius: 12px; padding: 6px 12px; white-space: nowrap;
+    font-size: 0.75rem; font-weight: 800; color: var(--color-gold);
+    opacity: 0; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    margin-bottom: 8px;
+  }
+  .mascot-speech::after {
+    content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+    border: 6px solid transparent; border-top-color: var(--color-gold);
+  }
+
   @media (max-width: 640px) {
     .menacing { display: none; }
     .combo { top: 10px; right: 10px; }
     .combo-count { font-size: 2rem; }
+    .anime-mascot { bottom: 10px; left: 10px; }
+    .mascot-body { width: 45px; height: 45px; }
   }
 </style>
 
@@ -600,4 +690,31 @@ import Base from '../layouts/Base.astro';
   }
 
   init();
+
+  // --- Mascot interactions ---
+  const mascotSpeech = document.getElementById('mascot-speech');
+  const mascot = document.getElementById('mascot');
+  const mascotLines: Record<string, string[]> = {
+    morning: ['おはよう！今日も頑張ろう！✨', 'いい朝だね～☀️', 'コーヒー飲んだ？☕'],
+    afternoon: ['こんにちは！調子どう？🌤️', 'ランチ食べた？🍱', 'ファイト！がんばれ！💪'],
+    evening: ['こんばんは～お疲れ様！💜', '今日もよく頑張った！🌙', '晩ごはんは何？🍽️'],
+    night: ['まだ起きてるの？😮', 'そろそろ寝なよ～💤', '夜更かしはダメだよ！🦉'],
+  };
+  const lines = mascotLines[period] || mascotLines.night;
+  let lineIdx = 0;
+
+  if (mascot && mascotSpeech) {
+    mascot.addEventListener('click', (e) => {
+      e.stopPropagation();
+      lineIdx = (lineIdx + 1) % lines.length;
+      mascotSpeech.textContent = lines[lineIdx];
+      mascotSpeech.style.opacity = '1';
+      mascotSpeech.style.transform = 'translateX(-50%) translateY(-5px) scale(1)';
+      setTimeout(() => {
+        mascotSpeech.style.opacity = '0';
+        mascotSpeech.style.transform = 'translateX(-50%) translateY(-5px) scale(0.8)';
+      }, 3000);
+      addCombo(e);
+    });
+  }
 </script>
