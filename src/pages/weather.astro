@@ -3,24 +3,270 @@ import Base from '../layouts/Base.astro';
 ---
 
 <Base title="날씨" active="weather">
-  <!-- Location indicator -->
-  <div class="flex items-center justify-end mb-4">
-    <span id="nav-loc" class="text-xs font-mono text-dim">위치 확인 중...</span>
+  <!-- Anime decorations -->
+  <div class="weather-sakura" id="sakura"></div>
+
+  <!-- Location with mini map -->
+  <div class="bg-card border-2 border-border rounded-2xl overflow-hidden mb-6 relative">
+    <div id="map" style="height:180px;width:100%;z-index:1"></div>
+    <div class="absolute bottom-3 left-3 z-10 bg-bg/90 backdrop-blur-md rounded-xl px-4 py-2 border border-border">
+      <span class="text-xs font-bold text-gold" id="nav-loc">📍 위치 확인 中...</span>
+    </div>
   </div>
 
   <!-- Content area -->
   <div id="content">
     <div class="text-center py-16">
-      <div class="text-6xl mb-4 animate-spin">🌀</div>
-      <p class="text-lg font-bold text-dim">날씨 데이터를 가져오는 중...</p>
+      <div class="text-7xl mb-4 weather-loading-icon">🌀</div>
+      <p class="text-lg font-bold text-dim">てんきデータ読み込み中... ✨</p>
+      <div class="loading-bar"><div class="loading-bar-inner"></div></div>
     </div>
   </div>
 
   <!-- Footer -->
-  <footer class="text-center py-4 text-xs text-dim mt-8">
-    aurore.work // Weather API
+  <footer class="text-center py-4 text-xs text-dim mt-8 font-mono">
+    aurore.work // Weather API — データ提供 ☁️
   </footer>
 </Base>
+
+<!-- Leaflet CSS & JS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style is:inline>
+  /* === WEATHER ANIME EFFECTS === */
+  .weather-sakura {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none; z-index: 0; overflow: hidden;
+  }
+  .sakura-petal {
+    position: absolute; opacity: 0.3; font-size: 1rem;
+    animation: sakura-fall linear infinite;
+  }
+  @keyframes sakura-fall {
+    0% { transform: translateY(-10vh) rotate(0deg) translateX(0); opacity: 0.3; }
+    25% { transform: translateY(25vh) rotate(90deg) translateX(30px); opacity: 0.4; }
+    50% { transform: translateY(50vh) rotate(180deg) translateX(-20px); opacity: 0.3; }
+    75% { transform: translateY(75vh) rotate(270deg) translateX(40px); opacity: 0.2; }
+    100% { transform: translateY(110vh) rotate(360deg) translateX(10px); opacity: 0; }
+  }
+
+  /* === LOADING === */
+  .weather-loading-icon {
+    animation: weather-spin 2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+  }
+  @keyframes weather-spin {
+    0% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(180deg) scale(1.2); }
+    100% { transform: rotate(360deg) scale(1); }
+  }
+  .loading-bar {
+    width: 200px; height: 4px; background: var(--color-border);
+    border-radius: 9999px; margin: 1rem auto; overflow: hidden;
+  }
+  .loading-bar-inner {
+    width: 40%; height: 100%; border-radius: 9999px;
+    background: linear-gradient(90deg, var(--color-pink), var(--color-gold), var(--color-cyan));
+    animation: loading-slide 1.5s ease-in-out infinite;
+  }
+  @keyframes loading-slide {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(350%); }
+  }
+
+  /* === BIG TEMP DISPLAY === */
+  .temp-display {
+    font-size: 8rem; font-weight: 900; line-height: 1;
+    background: linear-gradient(135deg, var(--color-text) 30%, var(--color-gold) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: temp-glow 3s ease-in-out infinite;
+  }
+  @keyframes temp-glow {
+    0%, 100% { filter: drop-shadow(0 0 0px transparent); }
+    50% { filter: drop-shadow(0 0 20px color-mix(in srgb, var(--color-gold) 30%, transparent)); }
+  }
+
+  /* === WEATHER EMOJI BOUNCE === */
+  .weather-emoji-big {
+    animation: weather-bounce 3s ease-in-out infinite;
+    display: inline-block;
+  }
+  @keyframes weather-bounce {
+    0%, 100% { transform: translateY(0) scale(1) rotate(0deg); }
+    25% { transform: translateY(-15px) scale(1.1) rotate(-5deg); }
+    50% { transform: translateY(-5px) scale(1.05) rotate(3deg); }
+    75% { transform: translateY(-10px) scale(1.08) rotate(-2deg); }
+  }
+
+  /* === SUNRISE/SUNSET ARC === */
+  .sun-arc-container {
+    position: relative; height: 160px; overflow: hidden;
+    margin: 0 auto; max-width: 400px;
+  }
+  .sun-arc-path {
+    position: absolute; bottom: 0; left: 10%; right: 10%;
+    height: 140px; border: 3px dashed var(--color-border);
+    border-bottom: none; border-radius: 50% 50% 0 0;
+  }
+  .sun-arc-icon {
+    position: absolute; font-size: 3rem;
+    transition: all 2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    filter: drop-shadow(0 0 15px rgba(255,200,0,0.5));
+    animation: sun-pulse 2s ease-in-out infinite;
+  }
+  @keyframes sun-pulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); }
+    50% { transform: translate(-50%, -50%) scale(1.15); }
+  }
+  .sun-label {
+    position: absolute; bottom: 0; font-size: 0.75rem; font-weight: 800;
+    color: var(--color-sub); text-align: center;
+  }
+  .sun-label-left { left: 5%; }
+  .sun-label-right { right: 5%; }
+  .horizon-line {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 2px; background: linear-gradient(90deg, transparent, var(--color-orange), transparent);
+  }
+  .sun-time-badge {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    padding: 0.3rem 0.8rem; border-radius: 9999px;
+    font-size: 0.85rem; font-weight: 800;
+  }
+
+  /* === METRIC CARD ANIMATION === */
+  .metric-card {
+    animation: metric-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    transition: all 0.3s;
+  }
+  .metric-card:hover {
+    transform: translateY(-4px) scale(1.03);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+  }
+  .metric-value {
+    animation: count-pop 0.8s ease both;
+  }
+  @keyframes metric-pop {
+    from { opacity: 0; transform: translateY(20px) scale(0.9); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes count-pop {
+    0% { transform: scale(0); opacity: 0; }
+    60% { transform: scale(1.2); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  /* === AQI BAR ANIMATION === */
+  .aqi-bar-animated {
+    width: 0; transition: width 1.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  /* === FORECAST CARD === */
+  .forecast-card {
+    animation: forecast-slide 0.5s ease both;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  .forecast-card:hover {
+    transform: translateY(-8px) scale(1.05) rotate(-2deg);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.25);
+    border-color: var(--color-gold) !important;
+  }
+  .forecast-card:hover .forecast-emoji {
+    animation: forecast-bounce 0.5s ease;
+  }
+  @keyframes forecast-slide {
+    from { opacity: 0; transform: translateX(30px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes forecast-bounce {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.4) rotate(15deg); }
+    70% { transform: scale(0.9) rotate(-5deg); }
+    100% { transform: scale(1.1) rotate(0); }
+  }
+
+  /* === POWER LEVEL / SCORE === */
+  .power-bar {
+    height: 12px; border-radius: 9999px; overflow: hidden;
+    background: var(--color-border); position: relative;
+  }
+  .power-bar-fill {
+    height: 100%; border-radius: 9999px;
+    background: linear-gradient(90deg, var(--color-green), var(--color-gold), var(--color-pink));
+    transition: width 2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+  }
+  .power-bar-fill::after {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(90deg, transparent 40%, rgba(255,255,255,0.15) 50%, transparent 60%);
+    animation: shine-bar 2s infinite;
+  }
+  @keyframes shine-bar {
+    0% { transform: translateX(-200%); }
+    100% { transform: translateX(200%); }
+  }
+
+  /* === VIBE CARD === */
+  .vibe-card {
+    position: relative; overflow: hidden;
+    animation: vibe-entrance 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+  .vibe-card::before {
+    content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+    background: radial-gradient(circle, color-mix(in srgb, var(--color-pink) 8%, transparent) 0%, transparent 70%);
+    animation: vibe-rotate 10s linear infinite;
+  }
+  @keyframes vibe-entrance {
+    from { opacity: 0; transform: scale(0.8) rotate(-5deg); }
+    to { opacity: 1; transform: scale(1) rotate(0); }
+  }
+  @keyframes vibe-rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  /* === ANIME SFX TEXT === */
+  .weather-sfx {
+    position: absolute; font-weight: 900; font-style: italic;
+    color: var(--color-gold); opacity: 0;
+    animation: sfx-pop 2s ease-in-out infinite;
+    pointer-events: none; z-index: 0;
+  }
+  @keyframes sfx-pop {
+    0%, 100% { opacity: 0; transform: scale(0.5) rotate(-10deg); }
+    20% { opacity: 0.6; transform: scale(1.1) rotate(5deg); }
+    40% { opacity: 0; transform: scale(1.3) rotate(-3deg); }
+  }
+
+  /* === SECTION HEADER === */
+  .section-header {
+    position: relative; display: inline-block;
+  }
+  .section-header::after {
+    content: ''; position: absolute; bottom: -4px; left: 0;
+    width: 100%; height: 3px; border-radius: 9999px;
+    background: linear-gradient(90deg, var(--color-gold), var(--color-pink), transparent);
+  }
+
+  /* Map marker pulse */
+  .map-marker-pulse {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--color-pink);
+    box-shadow: 0 0 0 0 rgba(244, 114, 182, 0.7);
+    animation: marker-pulse 2s infinite;
+  }
+  @keyframes marker-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(244, 114, 182, 0.7); }
+    70% { box-shadow: 0 0 0 20px rgba(244, 114, 182, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(244, 114, 182, 0); }
+  }
+
+  /* Leaflet overrides */
+  .leaflet-container { background: var(--color-bg) !important; border-radius: 1rem; }
+  .leaflet-control-zoom { display: none !important; }
+  .leaflet-control-attribution { font-size: 0.6rem !important; opacity: 0.5; }
+</style>
 
 <script>
   // --- Weather emoji map ---
@@ -32,85 +278,130 @@ import Base from '../layouts/Base.astro';
 
   // --- AQI levels ---
   const aqiLevels = [
-    { label: '좋음', emoji: '😊', colorClass: 'text-green', bgClass: 'bg-green/10', comment: '마음껏 밖에서 놀아도 돼!' },
-    { label: '보통', emoji: '🙂', colorClass: 'text-blue', bgClass: 'bg-blue/10', comment: '대체로 괜찮아. 민감군은 주의.' },
-    { label: '나쁨', emoji: '😷', colorClass: 'text-orange', bgClass: 'bg-orange/10', comment: '마스크 쓰고 나가자!' },
-    { label: '매우 나쁨', emoji: '🤮', colorClass: 'text-red', bgClass: 'bg-red/10', comment: '외출 자제! 집에서 쉬자.' },
-    { label: '위험', emoji: '☠️', colorClass: 'text-purple', bgClass: 'bg-purple/10', comment: '밖에 나가지 마!!' },
+    { label: '좋음', emoji: '😊', colorClass: 'text-green', bgClass: 'bg-green/10', barColor: '#34d399', comment: 'そとであそべる！マスク不要 ✨' },
+    { label: '보통', emoji: '🙂', colorClass: 'text-blue', bgClass: 'bg-blue/10', barColor: '#60a5fa', comment: 'まぁまぁ。敏感な人は注意 🌤️' },
+    { label: '나쁨', emoji: '😷', colorClass: 'text-orange', bgClass: 'bg-orange/10', barColor: '#fb923c', comment: 'マスク装備！外出注意 ⚠️' },
+    { label: '매우 나쁨', emoji: '🤮', colorClass: 'text-red', bgClass: 'bg-red/10', barColor: '#f87171', comment: '外出自制！おうちでゆっくり 🏠' },
+    { label: '위험', emoji: '☠️', colorClass: 'text-purple', bgClass: 'bg-purple/10', barColor: '#a78bfa', comment: '絶対外に出るな！！☠️' },
   ];
 
   // --- 3-tier location ---
-  interface LocResult {
-    lat: number;
-    lon: number;
-    source: string;
-    label: string;
-  }
+  interface LocResult { lat: number; lon: number; source: string; label: string; }
 
   async function getLocation(): Promise<LocResult> {
-    // Tier 1: Browser Geolocation
     try {
       const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
         if (!navigator.geolocation) { reject(new Error('no geo')); return; }
         navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000, maximumAge: 300000 });
       });
-      return { lat: pos.coords.latitude, lon: pos.coords.longitude, source: 'gps', label: 'GPS' };
+      return { lat: pos.coords.latitude, lon: pos.coords.longitude, source: 'gps', label: 'GPS 位置' };
     } catch {}
-
-    // Tier 2: IP geolocation (ip-api.com — HTTP only for free tier)
     try {
       const res = await fetch('http://ip-api.com/json/?fields=lat,lon,city,regionName', { signal: AbortSignal.timeout(4000) });
       if (res.ok) {
         const data = await res.json();
-        if (data.lat && data.lon) {
-          return { lat: data.lat, lon: data.lon, source: 'ip', label: `IP (${data.city || data.regionName || '알 수 없음'})` };
-        }
+        if (data.lat && data.lon) return { lat: data.lat, lon: data.lon, source: 'ip', label: `IP (${data.city || data.regionName || '不明'})` };
       }
     } catch {}
-
-    // Tier 3: Fallback Seoul
-    return { lat: 37.5665, lon: 126.978, source: 'fallback', label: '서울 (기본)' };
+    return { lat: 37.5665, lon: 126.978, source: 'fallback', label: 'ソウル (デフォルト)' };
   }
 
-  // --- Bar color helper ---
+  // --- Helpers ---
   function barColorClass(ratio: number): string {
     if (ratio < 0.3) return 'bg-green';
     if (ratio < 0.6) return 'bg-blue';
     if (ratio < 0.8) return 'bg-orange';
     return 'bg-red';
   }
-
   function barTextClass(ratio: number): string {
     if (ratio < 0.3) return 'text-green';
     if (ratio < 0.6) return 'text-blue';
     if (ratio < 0.8) return 'text-orange';
     return 'text-red';
   }
-
-  // --- Sunrise/sunset formatter ---
   function formatUnixTime(unix: number): string {
     const d = new Date(unix * 1000);
     return d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
   }
 
+  // --- Sakura particles ---
+  function initSakura() {
+    const container = document.getElementById('sakura');
+    if (!container) return;
+    const petals = ['🌸', '🩷', '💮', '✿', '❀'];
+    for (let i = 0; i < 15; i++) {
+      const p = document.createElement('div');
+      p.className = 'sakura-petal';
+      p.textContent = petals[Math.floor(Math.random() * petals.length)];
+      p.style.left = Math.random() * 100 + '%';
+      p.style.animationDuration = (10 + Math.random() * 15) + 's';
+      p.style.animationDelay = (-Math.random() * 20) + 's';
+      p.style.fontSize = (0.7 + Math.random() * 0.8) + 'rem';
+      container.appendChild(p);
+    }
+  }
+
+  // --- Map ---
+  let map: any = null;
+  function initMap(lat: number, lon: number) {
+    if (typeof (window as any).L === 'undefined') return;
+    const L = (window as any).L;
+    map = L.map('map', { zoomControl: false, attributionControl: true, dragging: false, scrollWheelZoom: false }).setView([lat, lon], 13);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
+      subdomains: 'abcd', maxZoom: 19
+    }).addTo(map);
+
+    // Custom pulsing marker
+    const icon = L.divIcon({
+      className: '',
+      html: '<div class="map-marker-pulse"></div>',
+      iconSize: [20, 20], iconAnchor: [10, 10]
+    });
+    L.marker([lat, lon], { icon }).addTo(map);
+  }
+
+  // --- Sun position on arc ---
+  function getSunPosition(sunrise: number, sunset: number): number {
+    const now = Date.now() / 1000;
+    if (now < sunrise) return 0;
+    if (now > sunset) return 1;
+    return (now - sunrise) / (sunset - sunrise);
+  }
+
+  // --- Animate number ---
+  function animateNum(el: HTMLElement, target: number, suffix = '', duration = 1000) {
+    const start = performance.now();
+    const ease = (t: number) => t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2;
+    function tick(now: number) {
+      const p = Math.min((now - start) / duration, 1);
+      el.textContent = Math.round(ease(p) * target) + suffix;
+      if (p < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
   // --- Init ---
   async function init() {
+    initSakura();
     const loc = await getLocation();
     const navLoc = document.getElementById('nav-loc');
     if (navLoc) navLoc.textContent = `📍 ${loc.label}`;
+
+    initMap(loc.lat, loc.lon);
 
     try {
       const apiUrl = `https://api.aurore.work/weather?lat=${loc.lat}&lon=${loc.lon}`;
       const res = await fetch(apiUrl);
       if (!res.ok) throw new Error(`API error: ${res.status}`);
       const data = await res.json();
-      render(data);
+      render(data, loc);
     } catch (err: any) {
       showError(err.message || '날씨 데이터를 가져올 수 없습니다.');
     }
   }
 
-  function render(data: any) {
+  function render(data: any, loc: LocResult) {
     const content = document.getElementById('content');
     if (!content) return;
 
@@ -121,8 +412,13 @@ import Base from '../layouts/Base.astro';
     const components = data.aqi?.components || {};
     const forecast = data.forecast || [];
     const ws = data.weekendSummary;
+    const vibe = data.vibe;
+    const outfit = data.outfit;
+    const coding = data.coding;
+    const score = data.todayScore;
+    const power = data.powerLevel;
+    const timeInfo = data.time;
 
-    // Pollutants
     const pollutants = [
       { name: 'PM2.5', val: components.pm2_5 || 0, max: 75 },
       { name: 'PM10', val: components.pm10 || 0, max: 150 },
@@ -131,68 +427,163 @@ import Base from '../layouts/Base.astro';
       { name: 'CO', val: components.co || 0, max: 15000 },
     ];
 
+    // Sun arc position
+    const sunPos = cur.sunrise && cur.sunset ? getSunPosition(cur.sunrise, cur.sunset) : 0.5;
+    const isDay = sunPos > 0 && sunPos < 1;
+    const arcAngle = Math.PI * (1 - sunPos); // 0=right, PI=left
+    const arcCx = 50; // center x %
+    const arcRx = 40; // radius x %
+    const arcRy = 85; // radius y % of container
+    const sunX = arcCx + arcRx * Math.cos(arcAngle);
+    const sunY = 95 - arcRy * Math.sin(arcAngle);
+
     content.innerHTML = `
-      <!-- Current Weather: BIG -->
-      <div class="bg-card border border-border rounded-2xl p-8 mb-6">
-        <div class="flex flex-col sm:flex-row items-center gap-6">
-          <div class="text-8xl shrink-0">${emoji}</div>
-          <div class="text-center sm:text-left">
-            <div class="text-7xl font-black text-text leading-none">${Math.round(cur.temp)}°</div>
-            <div class="text-xl font-bold text-sub capitalize mt-1">${cur.description}</div>
-            <div class="text-sm text-dim mt-1">체감 ${Math.round(cur.feels_like)}° · ${cur.name}</div>
-          </div>
+      <!-- ===== CURRENT WEATHER ===== -->
+      <div class="bg-card border-2 border-border rounded-2xl p-8 mb-6 relative overflow-hidden">
+        <div class="weather-sfx" style="top:10px;right:15px;font-size:1.2rem;animation-delay:0s">てんき！</div>
+        <div class="weather-sfx" style="bottom:10px;left:15px;font-size:1rem;animation-delay:1.5s">スゴイ</div>
+
+        <div class="flex flex-col items-center gap-4 relative z-1">
+          <div class="text-8xl weather-emoji-big">${emoji}</div>
+          <div class="temp-display">${Math.round(cur.temp)}°</div>
+          <div class="text-xl font-extrabold text-sub capitalize">${cur.description}</div>
+          <div class="text-sm text-dim font-bold">体感 ${Math.round(cur.feels_like)}° · ${cur.name}</div>
         </div>
 
         <!-- Key metrics -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6">
-          <div class="bg-bg rounded-xl p-4 text-center">
-            <div class="text-3xl font-black text-blue">${cur.humidity}%</div>
-            <div class="text-xs font-bold text-dim uppercase mt-1">습도</div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-8">
+          <div class="metric-card bg-bg rounded-xl p-4 text-center" style="animation-delay:0.1s">
+            <div class="text-3xl font-black text-blue metric-value" data-target="${cur.humidity}" data-suffix="%">${cur.humidity}%</div>
+            <div class="text-xs font-extrabold text-dim uppercase mt-1">💧 습도</div>
           </div>
-          <div class="bg-bg rounded-xl p-4 text-center">
-            <div class="text-3xl font-black text-cyan">${cur.wind}m/s</div>
-            <div class="text-xs font-bold text-dim uppercase mt-1">바람</div>
+          <div class="metric-card bg-bg rounded-xl p-4 text-center" style="animation-delay:0.2s">
+            <div class="text-3xl font-black text-cyan metric-value">${cur.wind}m/s</div>
+            <div class="text-xs font-extrabold text-dim uppercase mt-1">🌬️ 바람</div>
           </div>
-          <div class="bg-bg rounded-xl p-4 text-center">
-            <div class="text-3xl font-black text-purple">${cur.clouds}%</div>
-            <div class="text-xs font-bold text-dim uppercase mt-1">구름</div>
+          <div class="metric-card bg-bg rounded-xl p-4 text-center" style="animation-delay:0.3s">
+            <div class="text-3xl font-black text-purple metric-value">${cur.clouds}%</div>
+            <div class="text-xs font-extrabold text-dim uppercase mt-1">☁️ 구름</div>
           </div>
-          <div class="bg-bg rounded-xl p-4 text-center">
-            <div class="text-3xl font-black text-orange">${cur.rain || 0}mm</div>
-            <div class="text-xs font-bold text-dim uppercase mt-1">강수</div>
+          <div class="metric-card bg-bg rounded-xl p-4 text-center" style="animation-delay:0.4s">
+            <div class="text-3xl font-black text-orange metric-value">${cur.rain || 0}mm</div>
+            <div class="text-xs font-extrabold text-dim uppercase mt-1">🌧️ 강수</div>
           </div>
         </div>
+      </div>
 
-        <!-- Sunrise / Sunset -->
-        ${cur.sunrise && cur.sunset ? `
-        <div class="flex justify-center gap-8 mt-4 text-sm font-bold text-sub">
-          <span>🌅 ${formatUnixTime(cur.sunrise)}</span>
-          <span>🌇 ${formatUnixTime(cur.sunset)}</span>
+      <!-- ===== SUNRISE / SUNSET ARC ===== -->
+      ${cur.sunrise && cur.sunset ? `
+      <div class="bg-card border-2 border-border rounded-2xl p-6 mb-6 relative overflow-hidden">
+        <h3 class="text-center text-sm font-extrabold text-sub mb-2 relative z-1">🌅 日の出 · 日の入り</h3>
+        <div class="sun-arc-container">
+          <div class="sun-arc-path"></div>
+          <div class="horizon-line"></div>
+          <div class="sun-arc-icon" style="left:${sunX}%;top:${sunY}%">
+            ${isDay ? '☀️' : (sunPos >= 1 ? '🌙' : '🌅')}
+          </div>
+          <div class="sun-label sun-label-left">
+            <div class="text-2xl mb-1">🌅</div>
+            <div>${formatUnixTime(cur.sunrise)}</div>
+          </div>
+          <div class="sun-label sun-label-right">
+            <div class="text-2xl mb-1">🌇</div>
+            <div>${formatUnixTime(cur.sunset)}</div>
+          </div>
+        </div>
+        <div class="flex justify-center gap-6 mt-4">
+          <div class="sun-time-badge bg-orange/10 text-orange">🌅 일출 ${formatUnixTime(cur.sunrise)}</div>
+          <div class="sun-time-badge bg-purple/10 text-purple">🌇 일몰 ${formatUnixTime(cur.sunset)}</div>
+        </div>
+        <div class="text-center mt-3 text-xs text-dim font-bold">
+          ${isDay ? `☀️ 해가 떠 있어요! 낮 시간 ${Math.round((cur.sunset - cur.sunrise) / 3600)}시간 ${Math.round(((cur.sunset - cur.sunrise) % 3600) / 60)}분` : '🌙 밤이에요~'}
+        </div>
+      </div>
+      ` : ''}
+
+      <!-- ===== TODAY'S SCORE & POWER ===== -->
+      ${score || power ? `
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+        ${score ? `
+        <div class="vibe-card bg-card border-2 border-gold/20 rounded-2xl p-6 text-center" style="animation-delay:0.2s">
+          <div class="relative z-1">
+            <div class="text-sm font-extrabold text-gold mb-2 uppercase">⭐ Today's Score</div>
+            <div class="text-6xl font-black text-gold mb-2" style="text-shadow:0 0 30px rgba(255,215,0,0.3)">${score}</div>
+            <div class="text-xs text-sub font-bold">오늘의 날씨 점수</div>
+          </div>
+        </div>
+        ` : ''}
+        ${power ? `
+        <div class="vibe-card bg-card border-2 border-pink/20 rounded-2xl p-6" style="animation-delay:0.4s">
+          <div class="relative z-1">
+            <div class="text-sm font-extrabold text-pink mb-2 uppercase text-center">⚡ Power Level</div>
+            <div class="text-center text-4xl font-black text-pink mb-3">${power.level || '?'}</div>
+            <div class="power-bar" id="power-bar">
+              <div class="power-bar-fill" id="power-fill" style="width:0%"></div>
+            </div>
+            <div class="text-xs text-sub font-bold mt-2 text-center">${power.description || '파워 레벨 측정 中...'}</div>
+          </div>
         </div>
         ` : ''}
       </div>
+      ` : ''}
 
-      <!-- Air Quality -->
-      <div class="bg-card border border-border rounded-2xl p-6 mb-6 text-center">
-        <h3 class="text-sm font-extrabold text-sub mb-4">🌬️ 대기질</h3>
-        <div class="inline-flex items-center gap-4 px-6 py-4 rounded-2xl ${aqi.bgClass}">
-          <span class="text-5xl">${aqi.emoji}</span>
+      <!-- ===== VIBE & RECOMMENDATIONS ===== -->
+      ${vibe || outfit || coding ? `
+      <div class="grid grid-cols-1 sm:grid-cols-${[vibe, outfit, coding].filter(Boolean).length > 2 ? '3' : [vibe, outfit, coding].filter(Boolean).length} gap-4 mb-6">
+        ${vibe ? `
+        <div class="vibe-card bg-card border border-purple/20 rounded-2xl p-5 text-center" style="animation-delay:0.3s">
+          <div class="relative z-1">
+            <div class="text-3xl mb-2">${vibe.emoji || '🎭'}</div>
+            <div class="text-sm font-extrabold text-purple mb-1">バイブ</div>
+            <div class="text-lg font-black text-text">${vibe.ko || vibe.label || '분위기'}</div>
+            <div class="text-xs text-dim mt-1">${vibe.description || ''}</div>
+          </div>
+        </div>
+        ` : ''}
+        ${outfit ? `
+        <div class="vibe-card bg-card border border-cyan/20 rounded-2xl p-5 text-center" style="animation-delay:0.5s">
+          <div class="relative z-1">
+            <div class="text-3xl mb-2">${outfit.emoji || '👔'}</div>
+            <div class="text-sm font-extrabold text-cyan mb-1">コーデ</div>
+            <div class="text-lg font-black text-text">${outfit.ko || outfit.label || '옷차림'}</div>
+            <div class="text-xs text-dim mt-1">${outfit.description || ''}</div>
+          </div>
+        </div>
+        ` : ''}
+        ${coding ? `
+        <div class="vibe-card bg-card border border-green/20 rounded-2xl p-5 text-center" style="animation-delay:0.7s">
+          <div class="relative z-1">
+            <div class="text-3xl mb-2">${coding.emoji || '💻'}</div>
+            <div class="text-sm font-extrabold text-green mb-1">コーディング</div>
+            <div class="text-lg font-black text-text">${coding.ko || coding.label || '코딩'}</div>
+            <div class="text-xs text-dim mt-1">${coding.recommendation || coding.description || ''}</div>
+          </div>
+        </div>
+        ` : ''}
+      </div>
+      ` : ''}
+
+      <!-- ===== AIR QUALITY ===== -->
+      <div class="bg-card border-2 border-border rounded-2xl p-6 mb-6 text-center relative overflow-hidden">
+        <div class="weather-sfx" style="top:5px;right:10px;font-size:0.9rem;animation-delay:0.5s">キレイ</div>
+        <h3 class="section-header text-lg font-extrabold text-sub mb-5">🌬️ 大気質 (대기질)</h3>
+        <div class="inline-flex items-center gap-4 px-8 py-5 rounded-2xl ${aqi.bgClass} relative z-1">
+          <span class="text-6xl weather-emoji-big" style="animation-duration:2s">${aqi.emoji}</span>
           <div class="text-left">
-            <div class="text-2xl font-black ${aqi.colorClass}">${aqi.label}</div>
-            <div class="text-sm font-semibold text-sub">${aqi.comment}</div>
+            <div class="text-3xl font-black ${aqi.colorClass}">${aqi.label}</div>
+            <div class="text-sm font-bold text-sub">${aqi.comment}</div>
           </div>
         </div>
 
-        <!-- Pollutant bars -->
-        <div class="flex gap-4 mt-5 justify-center flex-wrap">
-          ${pollutants.map(p => {
+        <div class="grid grid-cols-5 gap-3 mt-6">
+          ${pollutants.map((p, i) => {
             const ratio = Math.min(p.val / p.max, 1);
             return `
-              <div class="text-center min-w-[60px]">
-                <div class="text-[0.65rem] text-dim font-bold mb-1">${p.name}</div>
-                <div class="text-sm font-extrabold ${barTextClass(ratio)}">${Math.round(p.val)}</div>
-                <div class="w-full h-1.5 bg-bg rounded-full mt-1 overflow-hidden">
-                  <div class="h-full rounded-full ${barColorClass(ratio)} transition-all duration-700" style="width:${ratio * 100}%"></div>
+              <div class="text-center metric-card" style="animation-delay:${0.8 + i * 0.1}s">
+                <div class="text-[0.7rem] text-dim font-extrabold mb-1">${p.name}</div>
+                <div class="text-lg font-black ${barTextClass(ratio)}">${Math.round(p.val)}</div>
+                <div class="w-full h-2 bg-bg rounded-full mt-2 overflow-hidden">
+                  <div class="h-full rounded-full aqi-bar-animated ${barColorClass(ratio)}" data-width="${ratio * 100}%"></div>
                 </div>
               </div>
             `;
@@ -200,53 +591,83 @@ import Base from '../layouts/Base.astro';
         </div>
       </div>
 
-      <!-- Weekend Summary -->
+      <!-- ===== WEEKEND SUMMARY ===== -->
       ${ws ? `
-      <div class="bg-card border border-pink/20 rounded-2xl p-6 mb-6 text-center">
-        <div class="text-4xl mb-2">${ws.allGood ? '🎉' : '🌂'}</div>
-        <h3 class="text-xl font-black text-pink mb-2">이번 주말은?</h3>
-        <div class="text-sm text-sub leading-relaxed">
-          ${ws.days?.map((d: any) => `${d.dayOfWeek}: ${weatherEmoji[d.icon] || '🌡️'} ${d.description}, ${d.low}~${d.high}°C${d.pop > 30 ? ` (비 ${d.pop}%)` : ''}`).join(' / ') || ''}
-          <div class="font-bold mt-1">${ws.recommendation || ''}</div>
+      <div class="bg-card border-2 ${ws.allGood ? 'border-pink/30' : 'border-blue/30'} rounded-2xl p-6 mb-6 text-center vibe-card" style="animation-delay:0.6s">
+        <div class="relative z-1">
+          <div class="text-5xl mb-3 weather-emoji-big">${ws.allGood ? '🎉' : '🌂'}</div>
+          <h3 class="text-2xl font-black text-pink mb-3">🗓️ 週末はどう？</h3>
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            ${ws.days?.map((d: any) => `
+              <div class="bg-bg rounded-xl p-4">
+                <div class="text-sm font-extrabold ${d.dayOfWeek === '토' ? 'text-blue' : 'text-pink'}">${d.dayOfWeek}요일</div>
+                <div class="text-3xl my-2">${weatherEmoji[d.icon] || '🌡️'}</div>
+                <div class="text-sm font-bold">
+                  <span class="text-orange">${d.high}°</span> / <span class="text-blue">${d.low}°</span>
+                </div>
+                <div class="text-xs text-dim capitalize">${d.description}</div>
+                ${d.pop > 30 ? `<div class="text-xs text-blue font-bold mt-1">💧 ${d.pop}%</div>` : ''}
+              </div>
+            `).join('') || ''}
+          </div>
+          <div class="text-sm font-extrabold text-sub bg-bg rounded-xl px-4 py-3">${ws.recommendation || ''}</div>
         </div>
       </div>
       ` : ''}
 
-      <!-- 5-day Forecast -->
-      <h3 class="text-2xl font-black mb-4 text-text">📅 5일 예보</h3>
+      <!-- ===== 5-DAY FORECAST ===== -->
+      <h3 class="section-header text-2xl font-black mb-5 text-text">📅 5日予報</h3>
       <div class="grid grid-cols-3 sm:grid-cols-5 gap-3 mb-8">
-        ${forecast.map((d: any) => `
-          <div class="bg-card border ${d.isWeekend ? 'border-pink/40' : 'border-border'} rounded-2xl p-4 text-center hover:-translate-y-1 transition-all">
+        ${forecast.map((d: any, i: number) => `
+          <div class="forecast-card bg-card border-2 ${d.isWeekend ? 'border-pink/40' : 'border-border'} rounded-2xl p-4 text-center" style="animation-delay:${i * 0.1}s">
             <div class="text-sm font-extrabold ${d.isWeekend ? 'text-pink' : 'text-sub'}">${d.dayOfWeek}</div>
             <div class="text-xs font-mono text-dim">${d.date?.slice(5) || ''}</div>
-            <div class="text-3xl my-2">${weatherEmoji[d.icon] || '🌡️'}</div>
-            <div class="text-sm font-extrabold">
+            <div class="text-4xl my-3 forecast-emoji">${weatherEmoji[d.icon] || '🌡️'}</div>
+            <div class="text-base font-black">
               <span class="text-orange">${d.high}°</span>
               <span class="text-dim">/</span>
               <span class="text-blue">${d.low}°</span>
             </div>
-            <div class="text-xs text-dim capitalize mt-0.5">${d.description}</div>
-            ${d.pop > 0 ? `<div class="text-xs text-blue font-bold mt-1">💧 ${d.pop}%</div>` : ''}
+            <div class="text-xs text-dim capitalize mt-1 font-bold">${d.description}</div>
+            ${d.pop > 0 ? `<div class="text-xs text-blue font-extrabold mt-1">💧 ${d.pop}%</div>` : ''}
           </div>
         `).join('')}
       </div>
     `;
+
+    // Animate AQI bars after render
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        document.querySelectorAll('.aqi-bar-animated').forEach(bar => {
+          const el = bar as HTMLElement;
+          el.style.width = el.dataset.width || '0%';
+        });
+      }, 300);
+
+      // Animate power bar
+      const powerFill = document.getElementById('power-fill');
+      if (powerFill && power) {
+        setTimeout(() => {
+          powerFill.style.width = (power.value || power.level || 50) + '%';
+        }, 500);
+      }
+    });
   }
 
   function showError(msg: string) {
     const content = document.getElementById('content');
     if (!content) return;
     content.innerHTML = `
-      <div class="bg-card border border-border rounded-2xl p-8 text-center">
-        <div class="text-5xl mb-4">😵</div>
-        <div class="text-lg font-bold text-sub mb-2">${msg}</div>
-        <div class="text-xs font-mono text-dim">잠시 후 다시 시도해주세요.</div>
+      <div class="bg-card border-2 border-border rounded-2xl p-8 text-center vibe-card">
+        <div class="relative z-1">
+          <div class="text-6xl mb-4 weather-emoji-big">😵</div>
+          <div class="text-xl font-black text-sub mb-2">エラー発生！</div>
+          <div class="text-sm text-dim font-bold">${msg}</div>
+          <div class="text-xs font-mono text-dim mt-2">しばらくしてからもう一度... 🙏</div>
+        </div>
       </div>
     `;
   }
-
-  // Expose formatUnixTime to template literals
-  (window as any).__formatUnixTime = formatUnixTime;
 
   init();
 </script>

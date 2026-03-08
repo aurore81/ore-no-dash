@@ -9,10 +9,10 @@ interface Props {
 const { title, active = 'home' } = Astro.props;
 
 const nav = [
-  { href: '/', label: '홈', id: 'home' },
-  { href: '/weather', label: '날씨', id: 'weather' },
-  { href: '/work', label: '업무', id: 'work' },
-  { href: '/stats', label: '통계', id: 'stats' },
+  { href: '/', label: '🏠 홈', id: 'home' },
+  { href: '/weather', label: '🌤️ 날씨', id: 'weather' },
+  { href: '/work', label: '💼 업무', id: 'work' },
+  { href: '/stats', label: '📊 통계', id: 'stats' },
 ] as const;
 ---
 
@@ -25,42 +25,237 @@ const nav = [
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏠</text></svg>">
 </head>
 <body class="bg-bg text-text font-sans min-h-dvh">
+  <!-- Global anime sparkle click -->
+  <div class="global-sparkle-layer" id="sparkle-layer"></div>
+
   <!-- Nav -->
   <nav class="sticky top-0 z-50 backdrop-blur-xl bg-bg/80 border-b border-border">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14">
-      <a href="/" class="text-lg font-black tracking-tight text-accent">aurore.work</a>
-      <div class="flex gap-1">
+      <a href="/" class="text-lg font-black tracking-tight text-accent nav-logo">
+        <span class="nav-logo-text">aurore.work</span>
+        <span class="nav-logo-star">✦</span>
+      </a>
+      <div class="flex items-center gap-1">
         {nav.map(n => (
           <a
             href={n.href}
             class:list={[
-              'px-3 py-1.5 rounded-lg text-sm font-bold transition-colors',
+              'nav-link px-3 py-1.5 rounded-lg text-sm font-bold transition-all',
               active === n.id
-                ? 'bg-accent/15 text-accent'
+                ? 'bg-accent/15 text-accent nav-active'
                 : 'text-dim hover:text-sub hover:bg-card',
             ]}
           >
             {n.label}
           </a>
         ))}
+        <!-- BGM toggle -->
+        <button id="bgm-btn" class="ml-2 px-2 py-1.5 rounded-lg text-sm font-bold text-dim hover:text-sub hover:bg-card transition-all" title="BGM ON/OFF">
+          🔇
+        </button>
       </div>
     </div>
   </nav>
 
   <!-- Main -->
-  <main class="max-w-5xl mx-auto px-4 sm:px-6 py-6">
+  <main class="max-w-5xl mx-auto px-4 sm:px-6 py-6 relative z-1">
     <slot />
   </main>
 
-  <!-- Theme script -->
+  <!-- Global floating emojis (all pages) -->
+  <div class="global-particles" id="global-particles"></div>
+
+  <!-- Theme + anime effects script -->
   <script is:inline>
+    // === Theme ===
     (function() {
-      const h = new Date().getHours();
-      let theme = 'theme-night';
+      var h = new Date().getHours();
+      var theme = 'theme-night';
       if (h >= 6 && h < 12) theme = 'theme-morning';
       else if (h >= 12 && h < 17) theme = 'theme-afternoon';
       else if (h >= 17 && h < 21) theme = 'theme-evening';
       document.documentElement.classList.add(theme);
+    })();
+  </script>
+
+  <style is:inline>
+    /* === NAV ANIME === */
+    .nav-logo { position: relative; }
+    .nav-logo-star {
+      position: absolute; top: -4px; right: -12px;
+      font-size: 0.6rem; color: var(--color-gold);
+      animation: star-twinkle 2s ease-in-out infinite;
+    }
+    @keyframes star-twinkle {
+      0%, 100% { opacity: 0.3; transform: scale(0.8) rotate(0deg); }
+      50% { opacity: 1; transform: scale(1.2) rotate(180deg); }
+    }
+    .nav-link { position: relative; }
+    .nav-active::after {
+      content: ''; position: absolute; bottom: 2px; left: 20%; right: 20%;
+      height: 2px; border-radius: 9999px;
+      background: var(--color-accent);
+      animation: nav-underline 0.3s ease;
+    }
+    @keyframes nav-underline {
+      from { transform: scaleX(0); }
+      to { transform: scaleX(1); }
+    }
+
+    /* === GLOBAL SPARKLE CLICK === */
+    .global-sparkle-layer {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none; z-index: 9999;
+    }
+    .g-sparkle {
+      position: absolute; pointer-events: none;
+      animation: g-sparkle-pop 0.6s ease-out forwards;
+    }
+    @keyframes g-sparkle-pop {
+      0% { transform: scale(0) rotate(0deg); opacity: 1; }
+      50% { transform: scale(1.5) rotate(180deg); opacity: 1; }
+      100% { transform: scale(0) rotate(360deg); opacity: 0; }
+    }
+
+    /* === GLOBAL PARTICLES === */
+    .global-particles {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none; z-index: 0; overflow: hidden;
+    }
+    .g-particle {
+      position: absolute; opacity: 0.15;
+      animation: g-float linear infinite;
+    }
+    @keyframes g-float {
+      0% { transform: translateY(110vh) rotate(0deg); }
+      100% { transform: translateY(-10vh) rotate(360deg); }
+    }
+
+    /* === BGM BUTTON === */
+    #bgm-btn.playing {
+      color: var(--color-pink);
+      animation: bgm-pulse 1s ease-in-out infinite;
+    }
+    @keyframes bgm-pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+  </style>
+
+  <script is:inline>
+    // === Global sparkle clicks (all pages) ===
+    document.addEventListener('click', function(e) {
+      var layer = document.getElementById('sparkle-layer');
+      if (!layer) return;
+      var sparkles = ['✦', '✧', '⚡', '★', '✿', '♪', '❀'];
+      var colors = ['var(--color-gold)', 'var(--color-pink)', 'var(--color-blue)', 'var(--color-purple)', 'var(--color-cyan)'];
+      for (var i = 0; i < 4; i++) {
+        var s = document.createElement('div');
+        s.className = 'g-sparkle';
+        s.textContent = sparkles[Math.floor(Math.random() * sparkles.length)];
+        s.style.left = (e.clientX + (Math.random() - 0.5) * 50) + 'px';
+        s.style.top = (e.clientY + (Math.random() - 0.5) * 50) + 'px';
+        s.style.color = colors[Math.floor(Math.random() * colors.length)];
+        s.style.fontSize = (1 + Math.random() * 0.8) + 'rem';
+        layer.appendChild(s);
+        setTimeout(function(el) { el.remove(); }, 600, s);
+      }
+    });
+
+    // === Global floating particles (all pages) ===
+    (function() {
+      var container = document.getElementById('global-particles');
+      if (!container) return;
+      var h = new Date().getHours();
+      var emojis;
+      if (h >= 6 && h < 12) emojis = ['🌸', '☀️', '🐦', '🦋', '✨', '🌻'];
+      else if (h >= 12 && h < 17) emojis = ['⚡', '☁️', '🚀', '💡', '✨', '🌊'];
+      else if (h >= 17 && h < 21) emojis = ['🌅', '🌙', '💜', '🎵', '✨', '🔮'];
+      else emojis = ['✨', '💜', '🌙', '⭐', '💫', '🌸'];
+      for (var i = 0; i < 10; i++) {
+        var p = document.createElement('div');
+        p.className = 'g-particle';
+        p.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+        p.style.left = Math.random() * 100 + '%';
+        p.style.animationDuration = (15 + Math.random() * 20) + 's';
+        p.style.animationDelay = (-Math.random() * 20) + 's';
+        p.style.fontSize = (0.7 + Math.random() * 0.6) + 'rem';
+        container.appendChild(p);
+      }
+    })();
+
+    // === BGM — Chiptune Generator (Web Audio API) ===
+    (function() {
+      var bgmBtn = document.getElementById('bgm-btn');
+      if (!bgmBtn) return;
+      var audioCtx = null;
+      var playing = false;
+      var gainNode = null;
+      var oscillators = [];
+
+      // Cute anime-style melody (pentatonic scale, looping)
+      var melody = [
+        // note (Hz), duration (sec)
+        [523, 0.25], [587, 0.25], [659, 0.25], [784, 0.5],
+        [659, 0.25], [784, 0.25], [880, 0.5], [784, 0.25],
+        [659, 0.25], [587, 0.25], [523, 0.5], [587, 0.25],
+        [659, 0.5], [523, 0.25], [587, 0.25], [523, 0.75],
+        // phrase 2
+        [784, 0.25], [880, 0.25], [784, 0.25], [659, 0.5],
+        [587, 0.25], [523, 0.25], [587, 0.5], [659, 0.25],
+        [784, 0.25], [880, 0.25], [784, 0.5], [659, 0.25],
+        [587, 0.5], [523, 0.75],
+      ];
+
+      function playMelody() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        gainNode = audioCtx.createGain();
+        gainNode.gain.value = 0.06; // Very quiet
+        gainNode.connect(audioCtx.destination);
+
+        var time = audioCtx.currentTime + 0.1;
+        function scheduleLoop() {
+          melody.forEach(function(note) {
+            var osc = audioCtx.createOscillator();
+            osc.type = 'sine';
+            osc.frequency.value = note[0];
+
+            var noteGain = audioCtx.createGain();
+            noteGain.gain.setValueAtTime(0, time);
+            noteGain.gain.linearRampToValueAtTime(0.06, time + 0.02);
+            noteGain.gain.linearRampToValueAtTime(0, time + note[1] - 0.02);
+
+            osc.connect(noteGain);
+            noteGain.connect(gainNode);
+            osc.start(time);
+            osc.stop(time + note[1]);
+            oscillators.push(osc);
+            time += note[1];
+          });
+        }
+
+        // Loop 8 times (~2 minutes)
+        for (var i = 0; i < 8; i++) scheduleLoop();
+      }
+
+      function stopBgm() {
+        oscillators.forEach(function(o) { try { o.stop(); } catch(e) {} });
+        oscillators = [];
+        if (gainNode) { gainNode.disconnect(); gainNode = null; }
+      }
+
+      bgmBtn.addEventListener('click', function() {
+        if (playing) {
+          stopBgm();
+          bgmBtn.textContent = '🔇';
+          bgmBtn.classList.remove('playing');
+        } else {
+          playMelody();
+          bgmBtn.textContent = '🎵';
+          bgmBtn.classList.add('playing');
+        }
+        playing = !playing;
+      });
     })();
   </script>
 </body>
