@@ -19,10 +19,22 @@ jobs:
           cache: npm
 
       - run: npm ci
+
+      - name: Collect deploy stats
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          TOTAL=$(curl -s "https://api.cloudflare.com/client/v4/accounts/$ACCOUNT_ID/pages/projects/ore-no-dash/deployments?per_page=1" \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" | jq -r '.result_info.total_count // 0')
+          TOTAL=$((TOTAL + 1))
+          echo "{\"total\":$TOTAL,\"lastDeployedAt\":\"$(date -u '+%Y-%m-%dT%H:%M:%SZ')\",\"lastStatus\":\"success\",\"project\":\"ore-no-dash\"}" > public/deploy-stats.json
+          echo "Deploy #$TOTAL"
+
       - run: npm run build
 
       - uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name ore-no-dash --commit-dirty=true --commit-message "${{ github.event.head_commit.message }}"
+          command: pages deploy dist --project-name ore-no-dash --commit-dirty=true --commit-message "Deploy #${{ github.run_number }} ${{ github.event.head_commit.message }}"

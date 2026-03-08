@@ -1,0 +1,9 @@
+services:
+  home-dash:
+    container_name: home-dash
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "8090:80"
+    volumes:
+      - ./dist:/usr/share/nginx/html:ro

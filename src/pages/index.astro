@@ -6,6 +6,24 @@ import Base from '../layouts/Base.astro';
   <!-- Greeting banner -->
   <div id="greeting" class="text-center py-3 px-5 mb-8 rounded-2xl bg-accent/8 border border-accent/15 text-lg font-bold text-text"></div>
 
+  <!-- Deploy counter -->
+  <div class="bg-card border border-border rounded-2xl p-5 mb-8 flex items-center justify-between flex-wrap gap-4" id="deploy-counter">
+    <div class="flex items-center gap-4">
+      <div class="text-4xl" id="deploy-emoji">🚀</div>
+      <div>
+        <div class="text-xs font-bold text-dim uppercase tracking-wider">Deployments</div>
+        <div class="flex items-baseline gap-2">
+          <span class="text-4xl font-black text-accent tabular-nums" id="deploy-count">-</span>
+          <span class="text-sm font-bold text-sub" id="deploy-label">회 배포</span>
+        </div>
+      </div>
+    </div>
+    <div class="text-right" id="deploy-meta">
+      <div class="text-xs font-mono text-dim" id="deploy-last">마지막 배포: 확인 중...</div>
+      <div class="text-xs font-bold text-green mt-1" id="deploy-status"></div>
+    </div>
+  </div>
+
   <!-- Filter pills -->
   <div class="flex justify-center gap-2 mb-6 flex-wrap" id="filters">
     <button class="filter-pill active" data-filter="all">전체</button>
@@ -213,18 +231,87 @@ import Base from '../layouts/Base.astro';
     window.open(href + qs, '_blank');
   });
 
+  // --- Deploy counter animation ---
+  function animateCount(el: HTMLElement, target: number) {
+    const duration = 1200;
+    const start = performance.now();
+    const ease = (t: number) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+    function tick(now: number) {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const current = Math.round(ease(progress) * target);
+      el.textContent = current.toLocaleString();
+      if (progress < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  function renderDeployCounter(deployData: any) {
+    const countEl = document.getElementById('deploy-count');
+    const lastEl = document.getElementById('deploy-last');
+    const statusEl = document.getElementById('deploy-status');
+    const emojiEl = document.getElementById('deploy-emoji');
+
+    if (!countEl || !deployData) return;
+
+    // Animate count
+    animateCount(countEl, deployData.total);
+
+    // Last deploy time
+    if (lastEl && deployData.lastDeployedAt) {
+      const ago = timeAgo(new Date(deployData.lastDeployedAt));
+      lastEl.textContent = `마지막 배포: ${ago}`;
+    }
+
+    // Status
+    if (statusEl) {
+      statusEl.textContent = deployData.lastStatus === 'success' ? '● 정상 가동 중' : '○ 상태 확인 필요';
+      statusEl.className = deployData.lastStatus === 'success'
+        ? 'text-xs font-bold text-green mt-1'
+        : 'text-xs font-bold text-orange mt-1';
+    }
+
+    // Fun emoji based on count
+    if (emojiEl) {
+      const total = deployData.total;
+      if (total >= 100) emojiEl.textContent = '🏆';
+      else if (total >= 50) emojiEl.textContent = '🔥';
+      else if (total >= 20) emojiEl.textContent = '⚡';
+      else if (total >= 10) emojiEl.textContent = '🚀';
+      else emojiEl.textContent = '🌱';
+    }
+  }
+
+  function timeAgo(date: Date): string {
+    const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+    if (seconds < 60) return '방금 전';
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}분 전`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}시간 전`;
+    const days = Math.floor(hours / 24);
+    return `${days}일 전`;
+  }
+
   // --- Load data ---
   async function init() {
     try {
-      const [sRes, hRes] = await Promise.all([
+      const [sRes, hRes, dRes] = await Promise.all([
         fetch('services.json'),
         fetch('history.json'),
+        fetch('deploy-stats.json').catch(() => null),
       ]);
       const services: Service[] = await sRes.json();
       const history: HistoryDay[] = await hRes.json();
       renderServices(services);
       setupFilters(services);
       renderHistory(history);
+
+      if (dRes && dRes.ok) {
+        const deployData = await dRes.json();
+        renderDeployCounter(deployData);
+      }
     } catch (err) {
       console.error('Failed to load data:', err);
     }
