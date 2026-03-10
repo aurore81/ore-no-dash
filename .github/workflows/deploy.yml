@@ -40,6 +40,14 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy dist --project-name ore-no-dash --commit-dirty=true --commit-message "Deploy from GitHub Actions"
 
+      - name: Purge Cloudflare cache
+        if: success()
+        run: |
+          curl -s -X POST "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/purge_cache" \
+            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{"hosts":["home.aurore.work"]}' || true
+
       - name: Record deploy to DB + notify success
         if: success()
         run: |

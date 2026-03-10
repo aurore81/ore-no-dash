@@ -11,6 +11,7 @@ ACCOUNT_ID="2e5c5e7f6c488572fe1c2e899e3e4fa2"
 PROJECT_NAME="ore-no-dash"
 NTFY_TOPIC="aurore-deploy-af55e122"
 SITE_URL="https://home.aurore.work"
+ZONE_ID="e982b59c13b6750675ff70dacf2bd0c9"
 
 echo "📊 배포 통계 수집 중..."
 DEPLOY_DATA=$(curl -s "https://api.cloudflare.com/client/v4/accounts/$ACCOUNT_ID/pages/projects/$PROJECT_NAME/deployments?per_page=1" \
@@ -37,6 +38,13 @@ npm run build
 echo "🚀 Cloudflare Pages 배포 중..."
 if npx wrangler pages deploy dist --project-name "$PROJECT_NAME" --commit-dirty=true --commit-message "Deploy #$TOTAL $(date '+%Y-%m-%d %H:%M')"; then
   echo "✅ 배포 완료! (#$TOTAL) $SITE_URL"
+
+  # Cloudflare 캐시 퍼지
+  echo "🧹 캐시 퍼지 중..."
+  curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/purge_cache" \
+    -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+    -H "Content-Type: application/json" \
+    -d '{"hosts":["home.aurore.work"]}' >/dev/null 2>&1 && echo "  캐시 퍼지 완료" || echo "  캐시 퍼지 실패 (무시)"
 
   # 성공 알림
   curl -s \
