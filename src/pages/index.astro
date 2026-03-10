@@ -560,16 +560,6 @@ import Base from '../layouts/Base.astro';
     change: { bg: 'bg-orange/15', text: 'text-orange', label: 'CHG' },
   };
 
-  // --- Gate token ---
-  const GATE_KEY = 'e3087205509900d6c862f806ccd58d1d';
-  async function hmacToken(): Promise<string> {
-    const enc = new TextEncoder();
-    const ts = Math.floor(Date.now() / 30000).toString();
-    const key = await crypto.subtle.importKey('raw', enc.encode(GATE_KEY), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
-    const sig = await crypto.subtle.sign('HMAC', key, enc.encode(ts));
-    return `?t=${Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 16)}&ts=${ts}`;
-  }
-
   // --- Render services ---
   function renderServices(services: Service[], filter = 'all') {
     const grid = document.getElementById('services');
@@ -581,7 +571,6 @@ import Base from '../layouts/Base.astro';
       const c = catColors[s.category] || catColors.infra;
       const proto = s.domain.startsWith('ftp.') ? 'ftp' : 'https';
       const href = s.domain.startsWith('ssh.') ? '#' : `${proto}://${s.domain}`;
-      const isGated = s.domain.startsWith('max.') || s.domain.startsWith('claude.');
 
       const card = document.createElement('a');
       card.href = href;
@@ -590,7 +579,6 @@ import Base from '../layouts/Base.astro';
       card.className = 'anime-card bg-card border-2 border-border rounded-2xl p-6 block';
       card.style.animation = `card-in 0.5s ease ${i * 0.05}s both`;
       card.setAttribute('data-sfx', sfxList[i % sfxList.length]);
-      if (isGated) card.dataset.gated = '1';
 
       card.addEventListener('mouseenter', (e) => addCombo(e));
 
@@ -660,16 +648,6 @@ import Base from '../layouts/Base.astro';
       });
     });
   }
-
-  // --- Gate click handler ---
-  document.addEventListener('click', async (e) => {
-    const a = (e.target as HTMLElement).closest('a[data-gated]');
-    if (!a) return;
-    e.preventDefault();
-    const href = a.getAttribute('href');
-    if (!href) return;
-    window.open(href + await hmacToken(), '_blank');
-  });
 
   // --- Deploy counter ---
   function animateCount(el: HTMLElement, target: number) {

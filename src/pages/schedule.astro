@@ -356,7 +356,7 @@ import Base from '../layouts/Base.astro';
       tags: [sched.emoji],
     };
     if (scheduledTime) {
-      payload.delay = scheduledTime;
+      payload.delay = String(Math.floor(new Date(scheduledTime).getTime() / 1000));
     }
 
     try {

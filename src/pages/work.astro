@@ -61,146 +61,52 @@ import Base from '../layouts/Base.astro';
     commits: Commit[];
   }
 
-  const projects: Project[] = [
-    {
-      id: 'all', name: '전체', icon: '📡', status: 'active',
-      desc: '전체 프로젝트 통합 타임라인', tech: '-', repo: '-', color: '#8b5cf6',
-      commits: []
-    },
-    {
-      id: 'sinsa-agency', name: 'Sinsa Agency', icon: '🏢', status: 'active',
-      desc: '웹 에이전시 SaaS 플랫폼 — 결제, 구독, 어드민, 포트폴리오',
-      tech: 'Next.js + Prisma + TossPayments', repo: 'SinSa-Code/sinsa-agency',
-      color: '#7c5cfc',
-      commits: [
-        { date: '2026-03-05', hash: '613d79c', type: 'feat', msg: '포트폴리오/OG 이미지를 실사 목업으로 교체' },
-        { date: '2026-03-05', hash: '1e367b1', type: 'fix', msg: '메인페이지 이미지 CSS 개선 — 직사각형 프레임 제거' },
-        { date: '2026-03-05', hash: '10a16fc', type: 'feat', msg: '메인페이지 이미지 전면 교체 (Imagen 4.0 Ultra)' },
-        { date: '2026-03-05', hash: '370392a', type: 'feat', msg: '스테이징 환경 구축 + SEO/OG 이미지 강화' },
-        { date: '2026-03-03', hash: '357644b', type: 'fix', msg: '메인페이지 폰트 통일 및 결제 계산 표시 개선' },
-        { date: '2026-03-02', hash: '6afb322', type: 'fix', msg: '위저드 세션 생성 제한 10회/분으로 완화' },
-        { date: '2026-03-02', hash: 'e60b801', type: 'fix', msg: '운영 포트폴리오 이미지 누락 복구' },
-        { date: '2026-03-02', hash: '200e9f1', type: 'feat', msg: '메인페이지 리뉴얼 반영' },
-        { date: '2026-02-28', hash: '57032a5', type: 'feat', msg: '결제 실패 후 PENDING 주문 재결제 UX 개선' },
-        { date: '2026-02-28', hash: '316781f', type: 'feat', msg: 'Sentry 에러 모니터링 어드민 대시보드 통합' },
-        { date: '2026-02-28', hash: '4519dbb', type: 'feat', msg: '어드민 분석 대시보드 4개 모듈 추가' },
-        { date: '2026-02-28', hash: 'f2c8ee3', type: 'fix', msg: '대시보드 헤더 "활성 프로젝트" → 진행/완료 상태별 요약 표시' },
-        { date: '2026-02-28', hash: '7f92ff4', type: 'fix', msg: '다음 결제 정보 — 금액 0원일 때 "-" 표시로 통일' },
-        { date: '2026-02-28', hash: '61f1460', type: 'feat', msg: 'Mock 빌링키 테스트 인프라 구축' },
-        { date: '2026-02-28', hash: '152a4c4', type: 'fix', msg: 'B8 Hydration 에러 수정 + C3 빌링키 비활성 알림 추가' },
-        { date: '2026-02-27', hash: '4921760', type: 'fix', msg: 'UX 개선 — 배너 문구 정확성 + autoRenew 분기 배너' },
-        { date: '2026-02-27', hash: 'dd47b4b', type: 'fix', msg: 'Dashboard Summary API + 경고 배너' },
-        { date: '2026-02-27', hash: '6a4510e', type: 'fix', msg: 'Admin Requests — 사이드바 링크 + 에러 표시 + 다크테마' },
-        { date: '2026-02-27', hash: 'f553cc2', type: 'fix', msg: '5-페르소나 프로덕션 테스트 10건 일괄 수정' },
-        { date: '2026-02-27', hash: 'a769a27', type: 'feat', msg: '티켓 상태 전이 매트릭스 도입' },
-        { date: '2026-02-27', hash: '0c24923', type: 'fix', msg: 'Pipeline 파싱, Ticket 400, 계약일 조건 Quick Fix' },
-        { date: '2026-02-27', hash: '515869a', type: 'fix', msg: 'Event/Notification — expired 페이로드 + 티켓 알림 확대' },
-        { date: '2026-02-27', hash: '9f117f8', type: 'fix', msg: 'DB 백업 워크플로우 수정 — pg_dump + R2 전송' },
-        { date: '2026-02-27', hash: 'ca548d4', type: 'fix', msg: '사업자 등록 서류 필수 완화' },
-      ]
-    },
-    {
-      id: 'rigel-tax', name: 'Rigel Tax', icon: '📊', status: 'active',
-      desc: '리겔세무 세무사 사이트 — 어드민, 상담, 세액산출, 분석',
-      tech: 'Next.js + Prisma + Umami + Playwright', repo: 'SinSa-Code/rigel-tax',
-      color: '#ff6b4a',
-      commits: [
-        { date: '2026-03-04', hash: '99cd043', type: 'feat', msg: '상담 목록 URL 필터 파라미터 연동' },
-        { date: '2026-03-04', hash: 'f80678a', type: 'fix', msg: 'stats API raw SQL 테이블/컬럼명 수정' },
-        { date: '2026-03-04', hash: '0c24923', type: 'feat', msg: '어드민 대시보드 차트 개편 + Umami 프록시 연동' },
-        { date: '2026-03-04', hash: '4ddc391', type: 'fix', msg: '어드민 로그인 페이지 모바일/데스크탑 최적화' },
-        { date: '2026-03-04', hash: '515869a', type: 'feat', msg: 'Umami 방문 분석 연동 — 트래킹 + 어드민 분석 페이지' },
-        { date: '2026-03-04', hash: '9f117f8', type: 'fix', msg: 'Dockerfile .next/cache 권한 + E2E selectChip exact 매칭' },
-        { date: '2026-03-04', hash: 'f628d75', type: 'feat', msg: 'Playwright E2E 테스트 20건 + 스테이징 rate limit 비활성화' },
-        { date: '2026-03-04', hash: '00cb2ab', type: 'feat', msg: 'SMS 바로가기 링크 + Sentry 에러 모니터링 설정' },
-        { date: '2026-03-04', hash: 'a769a27', type: 'fix', msg: 'admin 리다이렉트 X-Robots-Tag 헤더 추가' },
-        { date: '2026-03-04', hash: 'ca548d4', type: 'feat', msg: '메인페이지 킬포인트 형광펜 애니메이션' },
-        { date: '2026-03-04', hash: 'abdd988', type: 'feat', msg: '스테이징 DB 연결 + SMS 실발송 활성화' },
-        { date: '2026-03-04', hash: '3b5f825', type: 'fix', msg: 'Docker 빌드 Turbopack → webpack 전환' },
-        { date: '2026-03-04', hash: 'ebf0e91', type: 'merge', msg: 'feature/admin-panel → develop 머지' },
-        { date: '2026-03-04', hash: '5038c55', type: 'feat', msg: '어드민 패널 구축 — DB/인증/상담관리/세액산출/SEO' },
-        { date: '2026-03-04', hash: '36e2b0a', type: 'feat', msg: '디자인 리뉴얼 — 브랜드 CI, 폰트, 페이지별 OG' },
-        { date: '2026-03-04', hash: 'bb23637', type: 'feat', msg: 'SNS 공유 이미지 리뉴얼' },
-        { date: '2026-03-04', hash: 'c9cfe47', type: 'feat', msg: 'AI 생성 이미지로 ImageBriefMock 교체' },
-        { date: '2026-03-04', hash: '56b4ea0', type: 'docs', msg: '스테이징 환경 인프라 문서' },
-        { date: '2026-03-04', hash: '39e2c36', type: 'feat', msg: '스테이징 환경 구성 + 상담 문의 기능' },
-        { date: '2026-03-04', hash: '452eafc', type: 'docs', msg: '배포/인프라 운영 문서화' },
-      ]
-    },
-    {
-      id: 'template', name: 'Templates', icon: '🎨', status: 'active',
-      desc: '업종별 랜딩 페이지 템플릿 시스템 — 20+ 업종, Astro 기반',
-      tech: 'Astro + Tailwind CSS', repo: 'SinSa-Code/Template',
-      color: '#2ecf7a',
-      commits: [
-        { date: '2026-03-06', hash: '8bc5b5a', type: 'init', msg: 'v3 Editorial Design System 초기화' },
-        { date: '2026-03-06', hash: '0025b35', type: 'feat', msg: '20개 업종 템플릿 전체 구현 + QA 통과 (S등급 18, A등급 2)' },
-        { date: '2026-03-06', hash: '7ff237b', type: 'docs', msg: 'PROGRESS.md 전체 파이프라인 완료 반영' },
-        { date: '2026-03-06', hash: '6f62acc', type: 'refactor', msg: 'interior 템플릿 품질 개선' },
-        { date: '2026-03-05', hash: '1d645d1', type: 'refactor', msg: 'gym/lawfirm/wedding 5사이클 개선 + 3종 추가' },
-        { date: '2026-03-05', hash: 'cb3631d', type: 'feat', msg: '10개 템플릿 일괄 추가 — accounting, bakery 등' },
-        { date: '2026-03-05', hash: 'e51aa2f', type: 'refactor', msg: '치과 템플릿 5회 리뷰 개선' },
-        { date: '2026-03-05', hash: 'c8ae616', type: 'feat', msg: '법률사무소/뷰티살롱/웨딩플래너 추가' },
-        { date: '2026-03-05', hash: 'd570d85', type: 'feat', msg: '헬스장 템플릿 — 블랙+레드 Bold Energy' },
-        { date: '2026-03-05', hash: '9c0f3fc', type: 'feat', msg: '치과 템플릿 — 민트/티일 클리닉 디자인' },
-        { date: '2026-03-05', hash: '6d60d65', type: 'feat', msg: 'academy 템플릿 — 대학 로고, 차트 애니메이션' },
-        { date: '2026-03-05', hash: 'b1ff78a', type: 'init', msg: 'Initial commit: Astro landing page templates' },
-      ]
-    },
-    {
-      id: 'admin-sinsa', name: 'Admin Sinsa', icon: '🔐', status: 'init',
-      desc: '신사 통합 어드민 패널 — 결제 테스트, 대시보드',
-      tech: 'Next.js + Prisma', repo: 'SinSa-Code/admin-sinsa',
-      color: '#4a9eff',
-      commits: [
-        { date: '2026-01-22', hash: 'fe10f1b', type: 'fix', msg: '결제 테스트 중' },
-        { date: '2026-01-22', hash: '4a4b4ce', type: 'fix', msg: '실제 결제 이전까지' },
-        { date: '2026-01-22', hash: 'b10e2ac', type: 'fix', msg: 'error 개선, 대시보드 목업까지' },
-        { date: '2026-01-21', hash: 'f553cc2', type: 'fix', msg: 'prisma setting & signup && login' },
-        { date: '2026-01-20', hash: '0e7a39f', type: 'fix', msg: 'prisma setting' },
-        { date: '2026-01-19', hash: '0fca093', type: 'init', msg: 'Initial commit from Create Next App' },
-      ]
-    },
-    {
-      id: 'kkachi-omuk', name: 'Kkachi Omuk', icon: '🐦', status: 'staging',
-      desc: '까치어묵 — 젠킨스 CI/CD + 2차 미팅 준비',
-      tech: 'Next.js + Jenkins', repo: 'SinSa-Code/kkachi-omuk',
-      color: '#ffc107',
-      commits: [
-        { date: '2026-02-01', hash: 'e3ecb46', type: 'fix', msg: '2차 미팅 준비' },
-        { date: '2026-02-01', hash: '0d47965', type: 'fix', msg: '2차 미팅 준비' },
-        { date: '2026-01-25', hash: '2dd95c7', type: 'feat', msg: '젠킨스 셋팅' },
-        { date: '2026-01-25', hash: '322564d', type: 'init', msg: 'Initial commit from Create Next App' },
-      ]
-    },
-    {
-      id: 'ore-no-dash', name: 'ore-no-dash', icon: '🏠', status: 'active',
-      desc: '개인 대시보드 — 서비스 현황, 날씨, 통계, 예약 알림',
-      tech: 'Astro v5 + Tailwind CSS + Cloudflare Pages', repo: 'aurore81/ore-no-dash',
-      color: '#ff6b9d',
-      commits: [
-        { date: '2026-03-08', hash: '36abdc8', type: 'fix', msg: '통계·예약·날씨 페이지 버그 수정 + 온도 곡선 추가' },
-        { date: '2026-03-08', hash: 'd290e24', type: 'feat', msg: '예약 알림 페이지 + 일본어 전부 한국어로 교체' },
-        { date: '2026-03-08', hash: '2a59698', type: 'fix', msg: 'GitHub Actions 워크플로우 수정 + 배포 알림' },
-        { date: '2026-03-08', hash: '31d6557', type: 'fix', msg: '시간별 테마 적용 + 애니 마스코트 추가' },
-        { date: '2026-03-08', hash: '0f6fa6f', type: 'feat', msg: '배포 시 ntfy 푸시 알림 자동 발송' },
-        { date: '2026-03-08', hash: '9d2cada', type: 'feat', msg: '날씨 페이지 대규모 리뉴얼 + 전체 페이지 애니 효과' },
-        { date: '2026-03-08', hash: '32c1c9f', type: 'feat', msg: '배포 카운터 + CI/CD 자동화' },
-        { date: '2026-03-08', hash: '974ea5f', type: 'feat', msg: 'Astro v5 마이그레이션 + Cloudflare Pages 자동 배포' },
-      ]
-    },
-    {
-      id: 'ls-tax-next', name: 'LS Tax', icon: '💼', status: 'archive',
-      desc: 'LS세무 사이트 — song-tax에서 이관 완료',
-      tech: 'Next.js', repo: 'SinSa-Code/ls-tax-next',
-      color: '#999aaa',
-      commits: [
-        { date: '2026-01-18', hash: '8b2ab28', type: 'fix', msg: 'song tax → ls tax 이관' },
-        { date: '2026-01-18', hash: 'c59993a', type: 'fix', msg: '이관 완료' },
-        { date: '2026-01-18', hash: 'a662860', type: 'init', msg: 'Initial commit from Create Next App' },
-      ]
+  const projectMeta: Record<string, Omit<Project, 'commits'>> = {
+    'all': { id: 'all', name: '전체', icon: '📡', status: 'active', desc: '전체 프로젝트 통합 타임라인', tech: '-', repo: '-', color: '#8b5cf6' },
+    'sinsa-agency': { id: 'sinsa-agency', name: 'Sinsa Agency', icon: '🏢', status: 'active', desc: '웹 에이전시 SaaS 플랫폼', tech: 'Next.js + Prisma + TossPayments', repo: 'SinSa-Code/sinsa-agency', color: '#7c5cfc' },
+    'rigel-tax': { id: 'rigel-tax', name: 'Rigel Tax', icon: '📊', status: 'active', desc: '리겔세무 세무사 사이트', tech: 'Next.js + Prisma + Umami', repo: 'SinSa-Code/rigel-tax', color: '#ff6b4a' },
+    'template': { id: 'template', name: 'Templates', icon: '🎨', status: 'active', desc: '업종별 랜딩 페이지 템플릿', tech: 'Astro + Tailwind CSS', repo: 'SinSa-Code/Template', color: '#2ecf7a' },
+    'admin-sinsa': { id: 'admin-sinsa', name: 'Admin Sinsa', icon: '🔐', status: 'init', desc: '신사 통합 어드민 패널', tech: 'Next.js + Prisma', repo: 'SinSa-Code/admin-sinsa', color: '#4a9eff' },
+    'kkachi-omuk': { id: 'kkachi-omuk', name: 'Kkachi Omuk', icon: '🐦', status: 'staging', desc: '까치어묵', tech: 'Next.js + Jenkins', repo: 'SinSa-Code/kkachi-omuk', color: '#ffc107' },
+    'ore-no-dash': { id: 'ore-no-dash', name: 'ore-no-dash', icon: '🏠', status: 'active', desc: '개인 대시보드', tech: 'Astro v5 + CF Pages', repo: 'aurore81/ore-no-dash', color: '#ff6b9d' },
+    'ls-tax-next': { id: 'ls-tax-next', name: 'LS Tax', icon: '💼', status: 'archive', desc: 'LS세무 사이트', tech: 'Next.js', repo: 'SinSa-Code/ls-tax-next', color: '#999aaa' },
+    'home-dash': { id: 'home-dash', name: 'home-dash', icon: '📋', status: 'archive', desc: 'home-dash (구버전)', tech: 'HTML + nginx', repo: 'aurore81/home-dash', color: '#888' },
+    'dotfiles': { id: 'dotfiles', name: 'dotfiles', icon: '⚙️', status: 'active', desc: 'Mac 환경 설정', tech: 'zsh + brew', repo: 'SinSa-Code/dotfiles', color: '#aaa' },
+  };
+
+  // DB에서 커밋 가져오기
+  let projects: Project[] = [];
+
+  async function loadCommits() {
+    try {
+      const res = await fetch('https://api.aurore.work/commits?limit=2000');
+      const data = await res.json();
+      const commits: any[] = data.commits || [];
+
+      // 프로젝트별 그룹화 — DB의 project 이름을 소문자로 정규화
+      const byProject: Record<string, Commit[]> = {};
+      for (const c of commits) {
+        const pid = c.project.toLowerCase().replace(/[-_]?v\d+$/, '');
+        const key = pid === 'template' ? 'template' : c.project.toLowerCase();
+        if (!byProject[key]) byProject[key] = [];
+        byProject[key].push({ date: c.date, hash: c.hash, type: c.type, msg: c.message });
+      }
+
+      // 전체 탭
+      projects = [{ ...projectMeta['all'], commits: [] }];
+
+      // DB에 있는 프로젝트들
+      for (const [pid, pCommits] of Object.entries(byProject)) {
+        const meta = projectMeta[pid] || {
+          id: pid, name: pid, icon: '📦', status: 'active',
+          desc: '', tech: '', repo: '', color: '#888'
+        };
+        projects.push({ ...meta, commits: pCommits });
+      }
+    } catch {
+      projects = [{ ...projectMeta['all'], commits: [] }];
     }
-  ];
+  }
 
   const PAGE_SIZE = 15;
   let currentPage = 0;
@@ -408,6 +314,10 @@ import Base from '../layouts/Base.astro';
   }
 
   // --- Init ---
-  renderTabs();
-  selectProject('all');
+  async function init() {
+    await loadCommits();
+    renderTabs();
+    selectProject('all');
+  }
+  init();
 </script>

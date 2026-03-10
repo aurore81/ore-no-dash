@@ -24,9 +24,6 @@ LAST_STATUS=$(echo "$DEPLOY_DATA" | jq -r '.result[0].latest_stage.status // "un
 # +1 for this deployment
 TOTAL=$((TOTAL + 1))
 
-cat > public/deploy-stats.json <<STATS
-{"total":$TOTAL,"lastDeployedAt":"$(date -u '+%Y-%m-%dT%H:%M:%SZ')","lastStatus":"success","project":"$PROJECT_NAME"}
-STATS
 echo "  배포 #$TOTAL"
 
 # 최근 커밋 메시지
