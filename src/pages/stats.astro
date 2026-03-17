@@ -11,6 +11,29 @@ import Base from '../layouts/Base.astro';
   <!-- Summary stats -->
   <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-8" id="stats-row"></div>
 
+  <!-- Commit Heatmap -->
+  <div class="mb-8">
+    <h2 class="text-xl font-black mb-3 text-text">Commit Heatmap</h2>
+    <div class="bg-card border border-border rounded-2xl p-5 overflow-x-auto">
+      <div id="heatmap-months" class="flex text-[0.55rem] font-mono text-dim mb-1" style="padding-left:28px"></div>
+      <div class="flex gap-0">
+        <div id="heatmap-days" class="flex flex-col gap-[3px] text-[0.55rem] font-mono text-dim shrink-0" style="width:28px;padding-top:1px"></div>
+        <div id="heatmap-grid" class="flex gap-[3px]"></div>
+      </div>
+      <div class="flex items-center justify-end gap-2 mt-3 text-[0.55rem] font-mono text-dim">
+        <span>적음</span>
+        <div class="flex gap-1">
+          <div class="w-[11px] h-[11px] rounded-[2px]" style="background:var(--color-border)"></div>
+          <div class="w-[11px] h-[11px] rounded-[2px]" style="background:color-mix(in srgb, var(--color-accent) 30%, transparent)"></div>
+          <div class="w-[11px] h-[11px] rounded-[2px]" style="background:color-mix(in srgb, var(--color-accent) 55%, transparent)"></div>
+          <div class="w-[11px] h-[11px] rounded-[2px]" style="background:color-mix(in srgb, var(--color-accent) 80%, transparent)"></div>
+          <div class="w-[11px] h-[11px] rounded-[2px]" style="background:var(--color-accent)"></div>
+        </div>
+        <span>많음</span>
+      </div>
+    </div>
+  </div>
+
   <!-- Charts row -->
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
     <!-- By Type -->
@@ -56,6 +79,21 @@ import Base from '../layouts/Base.astro';
 </Base>
 
 <style is:inline>
+  .heatmap-cell {
+    width: 11px; height: 11px; border-radius: 2px;
+    position: relative; cursor: pointer;
+  }
+  .heatmap-cell:hover { outline: 2px solid var(--color-accent); outline-offset: -1px; }
+  .heatmap-tooltip {
+    position: fixed; z-index: 1000;
+    background: var(--color-text); color: var(--color-bg);
+    font-size: 0.65rem; font-family: var(--font-mono);
+    padding: 4px 8px; border-radius: 6px;
+    pointer-events: none; white-space: nowrap;
+    transform: translate(-50%, -100%);
+    margin-top: -8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
   .tl-filter-btn {
     padding: 0.3rem 0.7rem;
     border-radius: 9999px;
@@ -126,12 +164,129 @@ import Base from '../layouts/Base.astro';
     DATA.sort((a, b) => b.iso.localeCompare(a.iso));
 
     renderStatsRow();
+    renderHeatmap();
     renderTypeChart();
     renderProjChart();
     renderHourChart();
     renderWeekChart();
     renderTlControls();
     renderTimeline();
+  }
+
+  function renderHeatmap() {
+    const grid = document.getElementById('heatmap-grid');
+    const monthsEl = document.getElementById('heatmap-months');
+    const daysEl = document.getElementById('heatmap-days');
+    if (!grid || !monthsEl || !daysEl) return;
+
+    // Count commits per date
+    const counts: Record<string, number> = {};
+    DATA.forEach(c => { counts[c.d] = (counts[c.d] || 0) + 1; });
+
+    // Build 365 days ending today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const startDate = new Date(today);
+    startDate.setDate(startDate.getDate() - 364);
+
+    // Adjust start to the nearest Monday (ISO week start)
+    const startDay = startDate.getDay(); // 0=Sun
+    const adjustedStart = new Date(startDate);
+    // Go back to previous Monday (or stay if already Monday)
+    const diff = startDay === 0 ? -6 : 1 - startDay;
+    adjustedStart.setDate(adjustedStart.getDate() + diff);
+
+    // Day labels (Mon/Wed/Fri)
+    const dayLabels = ['', '월', '', '수', '', '금', ''];
+    dayLabels.forEach(label => {
+      const el = document.createElement('div');
+      el.style.height = '11px';
+      el.style.lineHeight = '11px';
+      el.textContent = label;
+      daysEl.appendChild(el);
+    });
+
+    // Tooltip element
+    let tooltip: HTMLDivElement | null = null;
+
+    // Build weeks (columns)
+    const d = new Date(adjustedStart);
+    let currentMonth = -1;
+    let weekCount = 0;
+    const monthPositions: { month: number; week: number }[] = [];
+
+    while (d <= today) {
+      const weekCol = document.createElement('div');
+      weekCol.className = 'flex flex-col gap-[3px]';
+
+      for (let day = 0; day < 7; day++) {
+        const dateStr = d.toISOString().slice(0, 10);
+        const count = counts[dateStr] || 0;
+        const cell = document.createElement('div');
+        cell.className = 'heatmap-cell';
+
+        // Track month changes (use first day that's within range)
+        if (d >= startDate && d.getMonth() !== currentMonth) {
+          currentMonth = d.getMonth();
+          monthPositions.push({ month: currentMonth, week: weekCount });
+        }
+
+        if (d > today || d < startDate) {
+          cell.style.background = 'transparent';
+        } else if (count === 0) {
+          cell.style.background = 'var(--color-border)';
+        } else if (count <= 2) {
+          cell.style.background = 'color-mix(in srgb, var(--color-accent) 30%, transparent)';
+        } else if (count <= 5) {
+          cell.style.background = 'color-mix(in srgb, var(--color-accent) 55%, transparent)';
+        } else if (count <= 9) {
+          cell.style.background = 'color-mix(in srgb, var(--color-accent) 80%, transparent)';
+        } else {
+          cell.style.background = 'var(--color-accent)';
+        }
+
+        // Tooltip events
+        if (d >= startDate && d <= today) {
+          const label = dateStr + ': ' + count + '커밋';
+          cell.addEventListener('mouseenter', function(e) {
+            if (tooltip) tooltip.remove();
+            tooltip = document.createElement('div');
+            tooltip.className = 'heatmap-tooltip';
+            tooltip.textContent = label;
+            document.body.appendChild(tooltip);
+            const rect = (e.target as HTMLElement).getBoundingClientRect();
+            tooltip.style.left = (rect.left + rect.width / 2) + 'px';
+            tooltip.style.top = (rect.top - 4) + 'px';
+          });
+          cell.addEventListener('mouseleave', function() {
+            if (tooltip) { tooltip.remove(); tooltip = null; }
+          });
+        }
+
+        weekCol.appendChild(cell);
+        d.setDate(d.getDate() + 1);
+      }
+
+      grid.appendChild(weekCol);
+      weekCount++;
+    }
+
+    // Month labels
+    const monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
+    const cellW = 14; // 11px + 3px gap
+    let lastLabelEnd = 0;
+    monthPositions.forEach(({ month, week }) => {
+      const left = week * cellW;
+      if (left < lastLabelEnd) return; // skip overlapping
+      const span = document.createElement('span');
+      span.textContent = monthNames[month];
+      span.style.position = 'absolute';
+      span.style.left = left + 'px';
+      monthsEl.appendChild(span);
+      lastLabelEnd = left + 24;
+    });
+    monthsEl.style.position = 'relative';
+    monthsEl.style.height = '14px';
   }
 
   function renderStatsRow() {

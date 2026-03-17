@@ -73,7 +73,9 @@ import Base from '../layouts/Base.astro';
   <!-- History section -->
   <div class="mb-12">
     <h2 class="text-2xl font-black mb-6 text-text">📜 작업 히스토리</h2>
+    <div class="text-xs font-mono text-dim mb-3" id="history-count"></div>
     <div id="history"></div>
+    <button class="w-full py-3 mt-4 rounded-xl bg-card border-2 border-border text-sm font-bold text-sub hover:text-gold hover:border-gold transition-all" id="history-more" style="display:none">더 보기</button>
   </div>
 
   <!-- Footer: device status -->
@@ -653,21 +655,40 @@ import Base from '../layouts/Base.astro';
     runHealthChecks(filtered);
   }
 
-  // --- Render history ---
-  function renderHistory(days: HistoryDay[]) {
+  // --- History pagination state ---
+  let historyOffset = 0;
+  const HISTORY_LIMIT = 10;
+  let historyTotal = 0;
+  let historyShown = 0;
+
+  // --- Render history (append mode) ---
+  function renderHistory(days: HistoryDay[], append = false) {
     const container = document.getElementById('history');
     if (!container) return;
-    container.innerHTML = '';
+    if (!append) container.innerHTML = '';
 
     days.forEach((day, di) => {
-      const dayEl = document.createElement('div');
-      dayEl.className = 'mb-6';
-      dayEl.style.animation = `card-in 0.4s ease ${di * 0.1}s both`;
+      // If appending, check if date header already exists
+      let dayEl: HTMLElement | null = null;
+      if (append) {
+        const existing = container.querySelectorAll('[data-history-date]');
+        existing.forEach(el => {
+          if ((el as HTMLElement).dataset.historyDate === day.date) dayEl = el as HTMLElement;
+        });
+      }
 
-      const dateHeader = document.createElement('div');
-      dateHeader.className = 'text-sm font-black text-gold mb-3 pl-3 border-l-3 border-gold';
-      dateHeader.textContent = day.date;
-      dayEl.appendChild(dateHeader);
+      if (!dayEl) {
+        dayEl = document.createElement('div');
+        dayEl.className = 'mb-6';
+        dayEl.setAttribute('data-history-date', day.date);
+        dayEl.style.animation = `card-in 0.4s ease ${di * 0.1}s both`;
+
+        const dateHeader = document.createElement('div');
+        dateHeader.className = 'text-sm font-black text-gold mb-3 pl-3 border-l-3 border-gold';
+        dateHeader.textContent = day.date;
+        dayEl.appendChild(dateHeader);
+        container.appendChild(dayEl);
+      }
 
       day.entries.forEach(entry => {
         const badge = badgeStyles[entry.type] || badgeStyles.change;
@@ -680,11 +701,39 @@ import Base from '../layouts/Base.astro';
             <div class="text-xs text-dim leading-relaxed">${entry.desc}</div>
           </div>
         `;
-        dayEl.appendChild(item);
+        dayEl!.appendChild(item);
+        historyShown++;
       });
-
-      container.appendChild(dayEl);
     });
+
+    updateHistoryCount();
+  }
+
+  function updateHistoryCount() {
+    const countEl = document.getElementById('history-count');
+    const moreBtn = document.getElementById('history-more');
+    if (countEl && historyTotal > 0) {
+      countEl.textContent = `전체 ${historyTotal}건 중 ${historyShown}건 표시`;
+    }
+    if (moreBtn) {
+      moreBtn.style.display = historyShown < historyTotal ? 'block' : 'none';
+    }
+  }
+
+  async function loadHistory(append = false) {
+    try {
+      const res = await fetch(`${API}/history?limit=${HISTORY_LIMIT}&offset=${historyOffset}`);
+      const data = await res.json();
+      historyTotal = data.total || 0;
+      const days: HistoryDay[] = data.days || data;
+      renderHistory(days, append);
+      // Count entries loaded in this batch
+      let batchCount = 0;
+      days.forEach(d => batchCount += d.entries.length);
+      historyOffset += batchCount;
+    } catch (err) {
+      console.error('Failed to load history:', err);
+    }
   }
 
   // --- Filter pills ---
@@ -771,22 +820,25 @@ import Base from '../layouts/Base.astro';
   const API = 'https://api.aurore.work';
   async function init() {
     try {
-      const [sRes, hRes, dRes] = await Promise.all([
+      const [sRes, dRes] = await Promise.all([
         fetch(`${API}/services`),
-        fetch(`${API}/history`),
         fetch(`${API}/deploy-stats?project=ore-no-dash`).catch(() => null),
       ]);
       const services: Service[] = await sRes.json();
-      const hData = await hRes.json();
-      const history: HistoryDay[] = hData.days || hData;
       renderServices(services);
       setupFilters(services);
-      renderHistory(history);
       if (dRes && dRes.ok) renderDeployCounter(await dRes.json());
+      // Load initial history with pagination
+      await loadHistory(false);
     } catch (err) {
       console.error('Failed to load data:', err);
     }
   }
+
+  // History "more" button
+  document.getElementById('history-more')?.addEventListener('click', () => {
+    loadHistory(true);
+  });
 
   init();
 

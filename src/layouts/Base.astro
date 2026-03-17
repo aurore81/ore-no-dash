@@ -27,11 +27,20 @@ const nav = [
   <!-- Theme must run before paint to avoid FOUC -->
   <script is:inline>
     (function() {
-      var h = new Date().getHours();
-      var theme = 'theme-night';
-      if (h >= 6 && h < 12) theme = 'theme-morning';
-      else if (h >= 12 && h < 17) theme = 'theme-afternoon';
-      else if (h >= 17 && h < 21) theme = 'theme-evening';
+      var pref = localStorage.getItem('cw-theme') || 'auto';
+      var theme;
+      if (pref === 'dark') {
+        theme = 'theme-night';
+      } else if (pref === 'light') {
+        theme = 'theme-afternoon';
+      } else {
+        var h = new Date().getHours();
+        theme = 'theme-night';
+        if (h >= 6 && h < 12) theme = 'theme-morning';
+        else if (h >= 12 && h < 17) theme = 'theme-afternoon';
+        else if (h >= 17 && h < 21) theme = 'theme-evening';
+      }
+      document.documentElement.setAttribute('data-cw-theme', pref);
       document.documentElement.classList.add(theme);
     })();
   </script>
@@ -61,6 +70,10 @@ const nav = [
             {n.label}
           </a>
         ))}
+        <!-- Theme toggle -->
+        <button id="theme-btn" class="ml-2 px-2 py-1.5 rounded-lg text-sm font-bold text-dim hover:text-sub hover:bg-card transition-all" title="테마 전환 (자동/다크/라이트)">
+          🔄
+        </button>
         <!-- BGM toggle -->
         <button id="bgm-btn" class="ml-2 px-2 py-1.5 rounded-lg text-sm font-bold text-dim hover:text-sub hover:bg-card transition-all" title="BGM ON/OFF">
           🔇
@@ -182,6 +195,43 @@ const nav = [
         p.style.fontSize = (0.7 + Math.random() * 0.6) + 'rem';
         container.appendChild(p);
       }
+    })();
+
+    // === Theme toggle (auto → dark → light → auto) ===
+    (function() {
+      var btn = document.getElementById('theme-btn');
+      if (!btn) return;
+      var icons = { auto: '\u{1F504}', dark: '\u{1F319}', light: '\u2600\uFE0F' };
+      var labels = { auto: '자동 (시간대)', dark: '다크 모드', light: '라이트 모드' };
+      var cycle = ['auto', 'dark', 'light'];
+      var current = localStorage.getItem('cw-theme') || 'auto';
+      btn.textContent = icons[current] || icons.auto;
+      btn.title = '테마: ' + (labels[current] || labels.auto);
+
+      btn.addEventListener('click', function() {
+        var idx = cycle.indexOf(current);
+        current = cycle[(idx + 1) % cycle.length];
+        localStorage.setItem('cw-theme', current);
+        btn.textContent = icons[current];
+        btn.title = '테마: ' + labels[current];
+        // Apply theme immediately
+        var root = document.documentElement;
+        root.classList.remove('theme-morning', 'theme-afternoon', 'theme-evening', 'theme-night');
+        root.setAttribute('data-cw-theme', current);
+        var theme;
+        if (current === 'dark') {
+          theme = 'theme-night';
+        } else if (current === 'light') {
+          theme = 'theme-afternoon';
+        } else {
+          var h = new Date().getHours();
+          theme = 'theme-night';
+          if (h >= 6 && h < 12) theme = 'theme-morning';
+          else if (h >= 12 && h < 17) theme = 'theme-afternoon';
+          else if (h >= 17 && h < 21) theme = 'theme-evening';
+        }
+        root.classList.add(theme);
+      });
     })();
 
     // === BGM — Chiptune Generator (Web Audio API) ===
