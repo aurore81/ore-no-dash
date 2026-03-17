@@ -61,7 +61,8 @@ import Base from '../layouts/Base.astro';
     commits: Commit[];
   }
 
-  const projectMeta: Record<string, Omit<Project, 'commits'>> = {
+  // Known project metadata lookup — unknown projects get auto-added with generic info
+  const knownMeta: Record<string, Omit<Project, 'commits'>> = {
     'all': { id: 'all', name: '전체', icon: '📡', status: 'active', desc: '전체 프로젝트 통합 타임라인', tech: '-', repo: '-', color: '#8b5cf6' },
     'sinsa-agency': { id: 'sinsa-agency', name: 'Sinsa Agency', icon: '🏢', status: 'active', desc: '웹 에이전시 SaaS 플랫폼', tech: 'Next.js + Prisma + TossPayments', repo: 'SinSa-Code/sinsa-agency', color: '#7c5cfc' },
     'rigel-tax': { id: 'rigel-tax', name: 'Rigel Tax', icon: '📊', status: 'active', desc: '리겔세무 세무사 사이트', tech: 'Next.js + Prisma + Umami', repo: 'SinSa-Code/rigel-tax', color: '#ff6b4a' },
@@ -73,6 +74,14 @@ import Base from '../layouts/Base.astro';
     'home-dash': { id: 'home-dash', name: 'home-dash', icon: '📋', status: 'archive', desc: 'home-dash (구버전)', tech: 'HTML + nginx', repo: 'aurore81/home-dash', color: '#888' },
     'dotfiles': { id: 'dotfiles', name: 'dotfiles', icon: '⚙️', status: 'active', desc: 'Mac 환경 설정', tech: 'zsh + brew', repo: 'SinSa-Code/dotfiles', color: '#aaa' },
   };
+
+  // Auto-generate color for unknown projects based on name hash
+  function hashColor(str: string): string {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    const hue = Math.abs(hash) % 360;
+    return `hsl(${hue}, 55%, 55%)`;
+  }
 
   // DB에서 커밋 가져오기
   let projects: Project[] = [];
@@ -93,18 +102,25 @@ import Base from '../layouts/Base.astro';
       }
 
       // 전체 탭
-      projects = [{ ...projectMeta['all'], commits: [] }];
+      projects = [{ ...knownMeta['all'], commits: [] }];
 
-      // DB에 있는 프로젝트들
+      // Auto-detect: build tabs from commit data, use known meta when available
       for (const [pid, pCommits] of Object.entries(byProject)) {
-        const meta = projectMeta[pid] || {
+        const meta = knownMeta[pid] || {
           id: pid, name: pid, icon: '📦', status: 'active',
-          desc: '', tech: '', repo: '', color: '#888'
+          desc: `${pid} 프로젝트`, tech: '-', repo: '-', color: hashColor(pid)
         };
-        projects.push({ ...meta, commits: pCommits });
+        projects.push({ ...meta, id: pid, commits: pCommits });
       }
+
+      // Sort: 'all' first, then by commit count desc
+      projects.sort((a, b) => {
+        if (a.id === 'all') return -1;
+        if (b.id === 'all') return 1;
+        return b.commits.length - a.commits.length;
+      });
     } catch {
-      projects = [{ ...projectMeta['all'], commits: [] }];
+      projects = [{ ...knownMeta['all'], commits: [] }];
     }
   }
 
