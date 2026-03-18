@@ -34,6 +34,24 @@ import Base from '../layouts/Base.astro';
     </div>
   </div>
 
+  <!-- Deploy History -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+    <!-- Deploy Frequency -->
+    <div>
+      <h2 class="text-xl font-black mb-3 text-text">배포 빈도 (14일)</h2>
+      <div class="bg-card border border-border rounded-2xl p-5" id="deploy-freq-chart">
+        <div class="text-sm text-dim font-mono">Loading...</div>
+      </div>
+    </div>
+    <!-- Deploy Timeline -->
+    <div>
+      <h2 class="text-xl font-black mb-3 text-text">배포 히스토리</h2>
+      <div class="bg-card border border-border rounded-2xl p-5 max-h-[420px] overflow-y-auto" id="deploy-timeline">
+        <div class="text-sm text-dim font-mono">Loading...</div>
+      </div>
+    </div>
+  </div>
+
   <!-- Charts row -->
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
     <!-- By Type -->
@@ -111,6 +129,28 @@ import Base from '../layouts/Base.astro';
     border-color: var(--color-accent);
     color: var(--color-accent);
     background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+  }
+  .deploy-entry {
+    display: flex; align-items: flex-start; gap: 0.5rem;
+    padding: 0.4rem 0.5rem; border-radius: 0.5rem;
+    transition: background 0.2s;
+  }
+  .deploy-entry:hover { background: var(--color-bg); }
+  .deploy-status {
+    font-size: 0.6rem; font-weight: 800;
+    padding: 0.2rem 0.5rem; border-radius: 9999px;
+    white-space: nowrap; margin-top: 0.15rem;
+  }
+  .deploy-status.success { background: color-mix(in srgb, var(--color-green) 15%, transparent); color: var(--color-green); }
+  .deploy-status.failure { background: color-mix(in srgb, var(--color-pink) 15%, transparent); color: var(--color-pink); }
+  .deploy-freq-bar {
+    height: 1.25rem; border-radius: 0.375rem;
+    transition: width 0.5s ease;
+    display: flex; align-items: center;
+    padding-left: 0.4rem;
+    font-size: 0.6rem; font-weight: 700; font-family: var(--font-mono);
+    color: white;
+    min-width: fit-content;
   }
 </style>
 
@@ -525,5 +565,135 @@ import Base from '../layouts/Base.astro';
 
   document.getElementById('show-more')?.addEventListener('click', () => { tlPage++; renderTimeline(); });
 
+  interface DeployEntry {
+    id: number;
+    project: string;
+    status: string;
+    commit_hash: string;
+    commit_message: string;
+    branch: string;
+    duration_s: number | null;
+    deployed_at: string;
+  }
+
+  async function initDeploy() {
+    try {
+      const res = await fetch('https://api.aurore.work/deploy-stats/history?limit=50');
+      const deploys: DeployEntry[] = await res.json();
+      renderDeployTimeline(deploys);
+      renderDeployFreq(deploys);
+    } catch {
+      const tl = document.getElementById('deploy-timeline');
+      const freq = document.getElementById('deploy-freq-chart');
+      if (tl) tl.innerHTML = '<div class="text-sm text-dim">데이터를 불러올 수 없습니다</div>';
+      if (freq) freq.innerHTML = '<div class="text-sm text-dim">데이터를 불러올 수 없습니다</div>';
+    }
+  }
+
+  function renderDeployTimeline(deploys: DeployEntry[]) {
+    const el = document.getElementById('deploy-timeline');
+    if (!el) return;
+
+    const recent = deploys.slice(0, 20);
+    const grouped: Record<string, DeployEntry[]> = {};
+    recent.forEach(d => {
+      const date = d.deployed_at.slice(0, 10);
+      if (!grouped[date]) grouped[date] = [];
+      grouped[date].push(d);
+    });
+
+    const projColorMap: Record<string, string> = {
+      'ore-no-dash': '#7c5cfc', 'home-dash': '#ff6b9d',
+      'sinsa-agency': '#7c5cfc', 'rigel-tax': '#ff6b4a',
+      'admin-sinsa': '#4a9eff', 'kkachi-omuk': '#ffc107',
+    };
+
+    let html = '';
+    Object.keys(grouped).sort((a, b) => b.localeCompare(a)).forEach(date => {
+      html += `<div class="mb-3">`;
+      html += `<div class="text-sm font-black text-accent mb-1.5">${date} <span class="text-xs font-mono text-dim ml-1">${grouped[date].length}</span></div>`;
+      grouped[date].forEach(d => {
+        const time = d.deployed_at.slice(11, 16);
+        const isSuccess = d.status === 'success';
+        const msg = d.commit_message.length > 60 ? d.commit_message.slice(0, 60) + '...' : d.commit_message;
+        const pColor = projColorMap[d.project] || '#666';
+        html += `
+          <div class="deploy-entry">
+            <span class="deploy-status ${isSuccess ? 'success' : 'failure'}">${isSuccess ? 'OK' : 'FAIL'}</span>
+            <span class="text-sm text-sub flex-1">
+              ${msg}
+              <span class="text-[0.55rem] font-mono font-bold ml-1.5 px-1 py-0.5 rounded" style="background:${pColor}15;color:${pColor}">${d.project}</span>
+            </span>
+            <span class="text-xs font-mono text-dim shrink-0">${time}</span>
+          </div>
+        `;
+      });
+      html += `</div>`;
+    });
+
+    el.innerHTML = html || '<div class="text-sm text-dim">배포 기록 없음</div>';
+  }
+
+  function renderDeployFreq(deploys: DeployEntry[]) {
+    const el = document.getElementById('deploy-freq-chart');
+    if (!el) return;
+
+    // Build last 14 days
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const days: string[] = [];
+    for (let i = 13; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      days.push(d.toISOString().slice(0, 10));
+    }
+
+    // Count by date and status
+    const counts: Record<string, { success: number; failure: number }> = {};
+    days.forEach(d => { counts[d] = { success: 0, failure: 0 }; });
+    deploys.forEach(d => {
+      const date = d.deployed_at.slice(0, 10);
+      if (counts[date]) {
+        if (d.status === 'success') counts[date].success++;
+        else counts[date].failure++;
+      }
+    });
+
+    const maxCount = Math.max(...days.map(d => counts[d].success + counts[d].failure), 1);
+
+    let html = '';
+    days.forEach(date => {
+      const s = counts[date].success;
+      const f = counts[date].failure;
+      const total = s + f;
+      const sPct = (s / maxCount * 100).toFixed(0);
+      const fPct = (f / maxCount * 100).toFixed(0);
+      const label = date.slice(5); // MM-DD
+
+      html += `
+        <div class="flex items-center gap-2 mb-1.5">
+          <div class="text-[0.65rem] font-mono text-dim w-12 text-right shrink-0">${label}</div>
+          <div class="flex-1 flex gap-[2px] h-5">
+            ${s > 0 ? `<div class="deploy-freq-bar" style="width:${sPct}%;background:var(--color-green)">${s}</div>` : ''}
+            ${f > 0 ? `<div class="deploy-freq-bar" style="width:${fPct}%;background:var(--color-pink)">${f}</div>` : ''}
+            ${total === 0 ? `<div class="h-full w-full rounded-lg" style="background:var(--color-border);opacity:0.3"></div>` : ''}
+          </div>
+          <div class="text-[0.6rem] font-mono text-dim w-5 text-right shrink-0">${total || ''}</div>
+        </div>
+      `;
+    });
+
+    // Legend
+    html += `
+      <div class="flex items-center justify-end gap-3 mt-3 text-[0.6rem] font-mono text-dim">
+        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm" style="background:var(--color-green)"></span> success</span>
+        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm" style="background:var(--color-pink)"></span> failure</span>
+      </div>
+    `;
+
+    el.innerHTML = html;
+  }
+
   init();
+  initDeploy();
 </script>
