@@ -245,9 +245,10 @@ import Base from '../layouts/Base.astro';
           cell.style.background = 'var(--color-accent)';
         }
 
-        // Tooltip events
+        // Tooltip & click events
         if (d >= startDate && d <= today) {
           const label = dateStr + ': ' + count + '커밋';
+          const cellDateStr = dateStr;
           cell.addEventListener('mouseenter', function(e) {
             if (tooltip) tooltip.remove();
             tooltip = document.createElement('div');
@@ -261,6 +262,13 @@ import Base from '../layouts/Base.astro';
           cell.addEventListener('mouseleave', function() {
             if (tooltip) { tooltip.remove(); tooltip = null; }
           });
+          // Click to navigate to work page with date
+          if (count > 0) {
+            cell.style.cursor = 'pointer';
+            cell.addEventListener('click', function() {
+              window.location.href = `/work/?date=${cellDateStr}`;
+            });
+          }
         }
 
         weekCol.appendChild(cell);

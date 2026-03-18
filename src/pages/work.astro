@@ -329,11 +329,67 @@ import Base from '../layouts/Base.astro';
     document.getElementById('tl-title')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
+  // --- Scroll to date from URL param ---
+  function scrollToDate(dateStr: string) {
+    // Find the page containing this date
+    const commits = getFilteredCommits();
+    let targetPage = 0;
+    let found = false;
+    for (let p = 0; p < Math.ceil(commits.length / PAGE_SIZE); p++) {
+      const start = p * PAGE_SIZE;
+      const slice = commits.slice(start, start + PAGE_SIZE);
+      if (slice.some(c => c.date === dateStr)) {
+        targetPage = p;
+        found = true;
+        break;
+      }
+    }
+    if (!found) return;
+
+    currentPage = targetPage;
+    renderTimeline();
+
+    // Highlight and scroll to the date group
+    requestAnimationFrame(() => {
+      const timeline = document.getElementById('timeline');
+      if (!timeline) return;
+      const dateGroups = timeline.querySelectorAll('.mb-5');
+      dateGroups.forEach(group => {
+        const header = group.querySelector('.border-l-3');
+        if (!header) return;
+        const headerText = header.textContent || '';
+        // Match by checking if the date parts match
+        const d = new Date(dateStr);
+        const formatted = `${d.getMonth()+1}/${d.getDate()}`;
+        if (headerText.includes(formatted)) {
+          // Highlight
+          (group as HTMLElement).style.background = 'color-mix(in srgb, var(--color-accent) 8%, transparent)';
+          (group as HTMLElement).style.borderRadius = '12px';
+          (group as HTMLElement).style.padding = '8px';
+          (group as HTMLElement).style.transition = 'background 2s ease';
+          // Scroll
+          group.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          // Fade out highlight
+          setTimeout(() => {
+            (group as HTMLElement).style.background = '';
+          }, 3000);
+        }
+      });
+    });
+  }
+
   // --- Init ---
   async function init() {
     await loadCommits();
     renderTabs();
     selectProject('all');
+
+    // Check for date URL param
+    const params = new URLSearchParams(window.location.search);
+    const dateParam = params.get('date');
+    if (dateParam) {
+      scrollToDate(dateParam);
+    }
   }
   init();
 </script>

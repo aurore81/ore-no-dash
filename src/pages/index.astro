@@ -53,6 +53,17 @@ import Base from '../layouts/Base.astro';
     </div>
   </div>
 
+  <!-- Weather mini widget -->
+  <a href="/weather/" id="weather-mini" class="bg-card border-2 border-border rounded-2xl px-5 py-3 mb-4 flex items-center gap-4 hover:border-gold/30 transition-all cursor-pointer" style="display:none;text-decoration:none">
+    <span class="text-3xl" id="wm-emoji">🌡️</span>
+    <div class="flex-1 flex items-center gap-4 flex-wrap">
+      <span class="text-2xl font-black text-text" id="wm-temp">--°</span>
+      <span class="text-sm font-bold text-sub" id="wm-desc">--</span>
+      <span class="text-xs font-mono text-dim" id="wm-feels">체감 --°</span>
+    </div>
+    <span class="text-xs font-bold px-2 py-0.5 rounded-full" id="wm-aqi" style="display:none">--</span>
+  </a>
+
   <!-- Greeting banner -->
   <div class="greeting-banner" id="greeting">
     <div class="greeting-shine"></div>
@@ -72,7 +83,13 @@ import Base from '../layouts/Base.astro';
 
   <!-- History section -->
   <div class="mb-12">
-    <h2 class="text-2xl font-black mb-6 text-text">📜 작업 히스토리</h2>
+    <h2 class="text-2xl font-black mb-4 text-text">📜 작업 히스토리</h2>
+    <!-- History search -->
+    <div class="relative mb-3">
+      <span class="absolute left-3 top-1/2 -translate-y-1/2 text-dim text-sm pointer-events-none">🔍</span>
+      <input type="text" id="history-search" placeholder="히스토리 검색..." class="w-full pl-9 pr-9 py-2 rounded-xl bg-card border border-border text-sm text-text placeholder-dim focus:outline-none focus:border-gold transition-all" />
+      <button id="history-search-clear" class="absolute right-3 top-1/2 -translate-y-1/2 text-dim hover:text-sub text-sm font-bold cursor-pointer" style="display:none">&times;</button>
+    </div>
     <div class="text-xs font-mono text-dim mb-3" id="history-count"></div>
     <div id="history"></div>
     <button class="w-full py-3 mt-4 rounded-xl bg-card border-2 border-border text-sm font-bold text-sub hover:text-gold hover:border-gold transition-all" id="history-more" style="display:none">더 보기</button>
@@ -566,20 +583,22 @@ import Base from '../layouts/Base.astro';
   const skipHealthCheck = (domain: string) =>
     domain.startsWith('ftp.') || domain.startsWith('ssh.') || domain.includes('router') || domain.includes('192.168.');
 
-  async function checkHealth(domain: string): Promise<boolean> {
-    if (skipHealthCheck(domain)) return false;
+  async function checkHealth(domain: string): Promise<{ ok: boolean; ms: number }> {
+    if (skipHealthCheck(domain)) return { ok: false, ms: 0 };
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
+      const t0 = performance.now();
       const res = await fetch(`https://${domain}`, {
         method: 'HEAD',
         mode: 'no-cors',
         signal: controller.signal,
       });
+      const ms = Math.round(performance.now() - t0);
       clearTimeout(timeoutId);
-      return true; // no-cors: if we get here without aborting, it's reachable
+      return { ok: true, ms };
     } catch {
-      return false;
+      return { ok: false, ms: 0 };
     }
   }
 
@@ -587,19 +606,25 @@ import Base from '../layouts/Base.astro';
     const checkable = services.filter(s => !skipHealthCheck(s.domain));
     const results = await Promise.all(
       checkable.map(async (s) => {
-        const ok = await checkHealth(s.domain);
-        return { domain: s.domain, ok };
+        const result = await checkHealth(s.domain);
+        return { domain: s.domain, ...result };
       })
     );
 
-    results.forEach(({ domain, ok }) => {
+    results.forEach(({ domain, ok, ms }) => {
       const dot = document.querySelector(`.health-dot[data-domain="${domain}"]`) as HTMLElement;
       if (dot) {
         dot.style.background = ok ? 'var(--color-green)' : 'var(--color-red)';
         dot.style.boxShadow = ok
           ? '0 0 6px color-mix(in srgb, var(--color-green) 60%, transparent)'
           : '0 0 6px color-mix(in srgb, var(--color-red) 60%, transparent)';
-        dot.title = ok ? '온라인' : '오프라인';
+        dot.title = ok ? `온라인 (${ms}ms)` : '오프라인';
+      }
+      // Update latency label
+      const label = document.querySelector(`.health-latency[data-domain="${domain}"]`) as HTMLElement;
+      if (label) {
+        label.textContent = ok ? `${ms}ms` : 'offline';
+        label.style.color = ok ? 'var(--color-dim)' : 'var(--color-red)';
       }
     });
   }
@@ -629,7 +654,7 @@ import Base from '../layouts/Base.astro';
 
       const popChar = allImages[i % allImages.length];
       const healthDot = showDot
-        ? `<span class="health-dot" data-domain="${s.domain}" style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--color-dim);margin-left:4px;vertical-align:middle;transition:all 0.3s" title="확인 중..."></span>`
+        ? `<span class="health-dot" data-domain="${s.domain}" style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--color-dim);margin-left:4px;vertical-align:middle;transition:all 0.3s" title="확인 중..."></span><span class="health-latency" data-domain="${s.domain}" style="font-size:0.65rem;font-family:var(--font-mono);color:var(--color-dim);margin-left:4px;vertical-align:middle"></span>`
         : '';
 
       card.innerHTML = `
@@ -816,6 +841,122 @@ import Base from '../layouts/Base.astro';
     } else { konamiIndex = 0; }
   });
 
+  // --- Weather mini widget ---
+  const wEmojiMap: Record<string, string> = {
+    '01d':'☀️','01n':'🌙','02d':'⛅','02n':'☁️','03d':'☁️','03n':'☁️',
+    '04d':'☁️','04n':'☁️','09d':'🌧️','09n':'🌧️','10d':'🌦️','10n':'🌧️',
+    '11d':'⛈️','11n':'⛈️','13d':'🌨️','13n':'🌨️','50d':'🌫️','50n':'🌫️'
+  };
+  const aqiLabels = ['좋음','보통','나쁨','매우 나쁨','위험'];
+  const aqiColors = ['bg-green/15 text-green','bg-blue/15 text-blue','bg-orange/15 text-orange','bg-red/15 text-red','bg-purple/15 text-purple'];
+
+  async function loadWeatherMini() {
+    try {
+      const controller = new AbortController();
+      setTimeout(() => controller.abort(), 5000);
+      const res = await fetch('https://api.aurore.work/weather?lat=37.66&lon=126.87', { signal: controller.signal });
+      if (!res.ok) return;
+      const data = await res.json();
+      const cur = data.current;
+      const widget = document.getElementById('weather-mini');
+      if (!widget) return;
+      const emojiEl = document.getElementById('wm-emoji');
+      const tempEl = document.getElementById('wm-temp');
+      const descEl = document.getElementById('wm-desc');
+      const feelsEl = document.getElementById('wm-feels');
+      const aqiEl = document.getElementById('wm-aqi');
+      if (emojiEl) emojiEl.textContent = wEmojiMap[cur.icon] || '🌡️';
+      if (tempEl) tempEl.textContent = `${Math.round(cur.temp)}°`;
+      if (descEl) descEl.textContent = cur.description;
+      if (feelsEl) feelsEl.textContent = `체감 ${Math.round(cur.feels_like)}°`;
+      if (aqiEl && data.aqi?.index) {
+        const idx = data.aqi.index - 1;
+        aqiEl.textContent = aqiLabels[idx] || '';
+        aqiEl.className = `text-xs font-bold px-2 py-0.5 rounded-full ${aqiColors[idx] || ''}`;
+        aqiEl.style.display = '';
+      }
+      widget.style.display = 'flex';
+    } catch {
+      // silently hide on failure
+    }
+  }
+
+  // --- History search ---
+  let allHistoryEntries: { el: HTMLElement; title: string; desc: string; dateEl: HTMLElement }[] = [];
+  let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function indexHistoryEntries() {
+    allHistoryEntries = [];
+    const container = document.getElementById('history');
+    if (!container) return;
+    container.querySelectorAll('[data-history-date]').forEach(dateGroup => {
+      const dateEl = dateGroup as HTMLElement;
+      dateEl.querySelectorAll('.bg-card').forEach(item => {
+        const titleEl = item.querySelector('.text-sm.font-bold');
+        const descEl = item.querySelector('.text-xs.text-dim');
+        allHistoryEntries.push({
+          el: item as HTMLElement,
+          title: (titleEl?.textContent || '').toLowerCase(),
+          desc: (descEl?.textContent || '').toLowerCase(),
+          dateEl,
+        });
+      });
+    });
+  }
+
+  function filterHistory(query: string) {
+    const countEl = document.getElementById('history-count');
+    const clearBtn = document.getElementById('history-search-clear');
+    if (!query.trim()) {
+      // Show all
+      allHistoryEntries.forEach(e => { e.el.style.display = ''; });
+      document.querySelectorAll('[data-history-date]').forEach(el => (el as HTMLElement).style.display = '');
+      if (clearBtn) clearBtn.style.display = 'none';
+      updateHistoryCount();
+      return;
+    }
+    if (clearBtn) clearBtn.style.display = '';
+    const q = query.toLowerCase();
+    let matchCount = 0;
+    const visibleDates = new Set<HTMLElement>();
+    allHistoryEntries.forEach(e => {
+      const match = e.title.includes(q) || e.desc.includes(q);
+      e.el.style.display = match ? '' : 'none';
+      if (match) { matchCount++; visibleDates.add(e.dateEl); }
+    });
+    // Hide empty date groups
+    document.querySelectorAll('[data-history-date]').forEach(el => {
+      (el as HTMLElement).style.display = visibleDates.has(el as HTMLElement) ? '' : 'none';
+    });
+    if (countEl) countEl.textContent = `${matchCount}건 검색됨`;
+  }
+
+  const searchInput = document.getElementById('history-search') as HTMLInputElement;
+  const searchClear = document.getElementById('history-search-clear');
+  if (searchInput) {
+    searchInput.addEventListener('input', () => {
+      if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(() => {
+        if (allHistoryEntries.length === 0) indexHistoryEntries();
+        filterHistory(searchInput.value);
+      }, 300);
+    });
+  }
+  if (searchClear) {
+    searchClear.addEventListener('click', () => {
+      if (searchInput) searchInput.value = '';
+      filterHistory('');
+    });
+  }
+
+  // Re-index after history loads
+  const origRenderHistory = renderHistory;
+  // Patch renderHistory to re-index after render
+  const patchedRenderHistory = function(days: HistoryDay[], append = false) {
+    origRenderHistory(days, append);
+    indexHistoryEntries();
+  };
+
   // --- Load data ---
   const API = 'https://api.aurore.work';
   async function init() {
@@ -830,14 +971,18 @@ import Base from '../layouts/Base.astro';
       if (dRes && dRes.ok) renderDeployCounter(await dRes.json());
       // Load initial history with pagination
       await loadHistory(false);
+      indexHistoryEntries();
+      // Load weather mini widget (non-blocking)
+      loadWeatherMini();
     } catch (err) {
       console.error('Failed to load data:', err);
     }
   }
 
   // History "more" button
-  document.getElementById('history-more')?.addEventListener('click', () => {
-    loadHistory(true);
+  document.getElementById('history-more')?.addEventListener('click', async () => {
+    await loadHistory(true);
+    indexHistoryEntries();
   });
 
   init();
